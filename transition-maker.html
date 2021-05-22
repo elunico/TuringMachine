@@ -11,6 +11,7 @@
       display: grid;
       width: max-content;
       grid-template-columns: max-content 10px max-content;
+      row-gap: 0.25rem;
     }
 
     label {
@@ -34,7 +35,7 @@
 </head>
 
 <body>
-  <h1>Create A Turing Machine Transition State</h1>
+  <h1>Turing Machine Transitions JSON File Creator</h1>
   <div id="form-container">
     <label for="startState">Start State</label>
     <input type="text" name="startState" id="startState" />
@@ -61,15 +62,15 @@
       <option id="HALT" style="color: red">HALT</option>
     </select>
     <p></p>
-    <input type="button" id="create-state" value="Create State">
-    <input type="button" id="make-json" value="Build JSON file">
+    <input type="button" id="create-state" value="Add State">
+    <input type="button" id="make-json" value="Download JSON file">
   </div>
   <p>
     <!-- <div>Result:</div>
     <textarea cols=70 rows=13 id="result">
 
     </textarea> -->
-    <div>States</div>
+    <div><strong>States</strong></div>
     <div id="state-container"></div>
   </p>
 
@@ -90,7 +91,7 @@
       let action = document.getElementById('action').selectedOptions[0].id;
 
       let stateNode = document.createElement('div');
-      stateNode.textContent = `State: ${startState} ➞ ${endState} (${startTape} ➞ ${endTape}) [${action}]`;
+      stateNode.textContent = `Transition: ${startState} ➞ ${endState} ('${startTape}' ➞ '${endTape}') [${action}]`;
       stateNode.setAttribute('data-json-string', `{
         "startState": "${startState}",
         "endState": "${endState}",
