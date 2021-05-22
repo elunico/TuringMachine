@@ -129,6 +129,36 @@ class TuringMachine:
     def print_state(self):
         print("Current state {} (tape={})".format(self.state['name'], repr(self.tape[self.tapeIndex])))
 
+    def ensure_transitions(self):
+        '''ensures there is a transition rule for every state with all possible tape values
+        this ensures that the NoSuchTransitionRule error will never be raised while running
+        to preventa run from ending due to an oversight. This method may take LONG to complete
+
+        Note that it is not always necessary to call this method. Sometimes a machine will run
+        perfectly fine without a valid transition between all states. Calling this method
+        and having it raise an exception does not necessarily mean that such an exception would
+        be raised during normal operation of the machine on a particular tape or any tape.
+
+        For instance a tape of only 1s and a machine with only 1 state 'A' and only 1 rule
+        A -> A (1 -> 1) [stay] would run forever and never raise a missing transition rule
+        error, yet this method would notice that there is no Rule for A when the tape is 0 or ' '
+        and then raise an exception. This method does not simulate a run (that is what run
+        is for) it can only tell you if every single transition rule is covered for all the
+        states that exist regardless of whether or not they will ever be hit or are needed.
+        If this method exits successfully, it is not possible to raise a NoSuchTransitionRule
+        error, however if this method FAILS then it is not clear whether a particular
+        run with a given tape will raise the excpetion or not.
+        '''
+        raise Warning('This method may not do what you think. Read the documentation')
+        for state in self.states:
+            name = state['name']
+            tapeValues = ['1', '0', ' ']
+            for transition in self.transitions:
+                if transition['startState'] == name:
+                    tapeValues.remove(transition['tapeValue'])
+            if len(tapeValues) != 0:
+                raise NoSuchTransitionRule(state, tapeValues)
+
 
 # states.json
 # a list of json objects that represent states
@@ -161,6 +191,7 @@ def main():
         tape = json.load(f)
 
     machine = TuringMachine(states, transitions, tape)
+    machine.ensure_transitions()
     machine.initialize('A', 3)
     machine.run()
 
