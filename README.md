@@ -4,6 +4,8 @@ This program (approximately) simulates a Turing machine.
 
 It consists of several parts.
 
+You can find the webpage for creating transition JSON files [at this link](https://eluni.co/TuringMachine/transition-maker.html)
+
 ## importing TuringMachine
 First there is a TuringMachine class which can be imported and used in other programs.
 It is (fairly) well documented and hopefully self-explanatory. If you want to use this
