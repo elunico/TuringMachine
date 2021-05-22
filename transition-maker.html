@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Transition Creator</title>
+  <style>
+    #form-container {
+      display: grid;
+      width: max-content;
+      grid-template-columns: max-content 10px max-content;
+    }
+
+    label {
+      grid-column: 1;
+      text-align: right;
+    }
+
+    input,
+    select {
+      grid-column: 3;
+    }
+
+    #form-container>p {
+      grid-column: 3;
+    }
+
+    #state-container {
+      font-family: monospace;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Create A Turing Machine Transition State</h1>
+  <div id="form-container">
+    <label for="startState">Start State</label>
+    <input type="text" name="startState" id="startState" />
+    <label for="startTape">Start Tape Value</label>
+    <select id="startTape">
+      <option data-tape="0">0</option>
+      <option data-tape="1">1</option>
+      <option data-tape=" ">&nbsp; (blank)</option>
+    </select>
+    <p></p>
+    <label for="endState">Resulting State</label>
+    <input type="text" name="endState" id="endState" />
+    <label for="endTape">Resulting Tape Value</label>
+    <select id="endTape">
+      <option data-tape="0">0</option>
+      <option data-tape="1">1</option>
+      <option data-tape=" ">&nbsp; (blank)</option>
+    </select>
+    <label for="action">Result Action</label>
+    <select id="action">
+      <option id="stay">Stay</option>
+      <option id="left">Move Left</option>
+      <option id="right">Move Right</option>
+      <option id="HALT" style="color: red">HALT</option>
+    </select>
+    <p></p>
+    <input type="button" id="create-state" value="Create State">
+    <input type="button" id="make-json" value="Build JSON file">
+  </div>
+  <p>
+    <!-- <div>Result:</div>
+    <textarea cols=70 rows=13 id="result">
+
+    </textarea> -->
+    <div>States</div>
+    <div id="state-container"></div>
+  </p>
+
+  <script>
+    let stateContainer = document.getElementById('state-container');
+    let makeStateButton = document.getElementById('create-state');
+    makeStateButton.onclick = function () {
+      let startState = document.getElementById('startState').value;
+      let endState = document.getElementById('endState').value;
+      let startTape = document.getElementById('startTape').selectedOptions[0].getAttribute('data-tape');
+      let endTape = document.getElementById('endTape').selectedOptions[0].getAttribute('data-tape');
+
+      if (!startState || !endState) {
+        alert('startState and endState must not be blank');
+        return;
+      }
+
+      let action = document.getElementById('action').selectedOptions[0].id;
+
+      let stateNode = document.createElement('div');
+      stateNode.textContent = `State: ${startState} ➞ ${endState} (${startTape} ➞ ${endTape}) [${action}]`;
+      stateNode.setAttribute('data-json-string', `{
+        "startState": "${startState}",
+        "endState": "${endState}",
+        "tapeValue": "${startTape}",
+        "newTapeValue": "${endTape}",
+        "action": "${action}"` + '\n}');
+
+      let deleteButton = document.createElement('input');
+      deleteButton.type = 'button';
+      deleteButton.value = 'Delete State';
+      deleteButton.onclick = function () {
+        stateContainer.removeChild(stateNode);
+      }
+
+      stateNode.appendChild(deleteButton);
+      stateContainer.appendChild(stateNode);
+
+    };
+
+    let makeJsonButton = document.getElementById('make-json');
+    makeJsonButton.onclick = function () {
+      let stateElts = stateContainer.getElementsByTagName('div');
+      let jsonString = '[';
+      for (let stateElt of stateElts) {
+        jsonString += stateElt.getAttribute('data-json-string') + ',';
+      }
+      jsonString = jsonString.substring(0, jsonString.length - 1); // delete trailing comma thanks JSON
+      jsonString += ']';
+
+
+      downloadToFile(jsonString, 'transitions.json', 'application/json');
+
+    };
+
+    function downloadToFile(content, filename, contentType) {
+      // from https://robkendal.co.uk/blog/2020-04-17-saving-text-to-client-side-file-using-vanilla-js
+      const a = document.createElement('a');
+      const file = new Blob([content], {
+        type: contentType
+      });
+
+      a.href = URL.createObjectURL(file);
+      a.download = filename;
+      a.click();
+
+      URL.revokeObjectURL(a.href);
+    };
+  </script>
+</body>
+
+</html>

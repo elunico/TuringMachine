@@ -1,0 +1,44 @@
+[
+  {
+    "startState": "A",
+    "endState": "A",
+    "tapeValue": "0",
+    "newTapeValue": "1",
+    "action": "left"
+  },
+  {
+    "startState": "A",
+    "endState": "B",
+    "tapeValue": "1",
+    "newTapeValue": "1",
+    "action": "left"
+  },
+  {
+    "startState": "A",
+    "endState": "B",
+    "tapeValue": " ",
+    "newTapeValue": "0",
+    "action": "right"
+  },
+  {
+    "startState": "B",
+    "endState": "B",
+    "tapeValue": "0",
+    "newTapeValue": "0",
+    "action": "right"
+  },
+  {
+    "startState": "B",
+    "endState": "A",
+    "tapeValue": "1",
+    "newTapeValue": " ",
+    "action": "left"
+  },
+  {
+    "startState": "B",
+    "endState": "B",
+    "tapeValue": " ",
+    "newTapeValue": " ",
+    "action": "HALT"
+  }
+]
