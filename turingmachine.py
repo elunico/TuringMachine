@@ -11,6 +11,7 @@ def parse_args():
     ap.add_argument('-b', '--beginstate', default='A', help='Name of the state to begin the simulation in')
     ap.add_argument('-n', '--index', default=0, type=int, help='0-based index of the tape to begin the simulation in ')
     ap.add_argument('-i', '--infinite', action='store_true', help='If the -i flag is passed, no EOT errors will be raised and tape will act as though it were infinite (until memory exhausts)')
+    ap.add_argument('-q', '--quiet', action='store_true', help='Do not print each state as the machine transitions through them')
     ap.add_argument('-e', '--ensuretransitions', action='store_true', help='Ensure all possible transitions between'
                     'states are covered and raise an exception if not. Might not do what you expect. '
                     'Read the documentation for the TuringMachine#ensure_transitions() method')
@@ -69,7 +70,7 @@ class TuringMachine:
         self.errorOnEOT = True
         self.halted = False
 
-    def initialize(self, startState, startIndex, errorOnEOT=True):
+    def initialize(self, startState, startIndex, errorOnEOT=True, verbose=True):
         '''
         Set up the Turing machine in a specific state and at a specific position
         along the tape so that it can be run beginning at this place and state
@@ -83,12 +84,13 @@ class TuringMachine:
         self.tapeIndex = startIndex
         self.halted = False
         self.errorOnEOT = errorOnEOT
+        self.verbose = verbose
 
-    def run(self, verbose=True):
+    def run(self):
         '''Run continuously until halt or interrupt'''
         try:
             while not self.halted:
-                if verbose:
+                if self.verbose:
                     self.print_state()
                 self.next()
         except KeyboardInterrupt:
@@ -218,7 +220,12 @@ def main():
     machine = TuringMachine(states, transitions, tape)
     if options.ensuretransitions:
         machine.ensure_transitions()
-    machine.initialize(options.beginstate, options.index, errorOnEOT=not options.infinite)
+    machine.initialize(options.beginstate, options.index, errorOnEOT=not options.infinite, verbose=not options.quiet)
+    print("Machine start!")
+    print("Tape output (without blanks)")
+    machine.print_tape_trimmed()
+    if not options.quiet:
+        print("\nBeginning simulation...")
     machine.run()
     print('\nFinished!')
     print("Tape output (without blanks)")
