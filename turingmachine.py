@@ -41,15 +41,14 @@ class NoSuchTransitionRule(KeyError):
 
 
 class EndOfTapeError(EOFError):
-    def __init__(self, message, state, tape, index, transition) -> None:
+    def __init__(self, message, state, tape, index) -> None:
         self.message = message
         self.state = state
         self.tape = tape
         self.index = index
-        self.transition = transition
 
     def __str__(self) -> str:
-        return '{}: state={} (tape={}) trying {}'.format(self.message, repr(self.state['name']), repr(self.tape[self.index]), repr(self.transition))
+        return '{}: state={} (tape={}) '.format(self.message, repr(self.state['name']), repr(self.tape[self.index]))
 
     def __repr__(self) -> str:
         return 'EndOfTapeError: {}'.format(str(self))
@@ -105,6 +104,21 @@ class TuringMachine:
         '''transition to the next state and then hold'''
         if self.halted:
             raise NextAfterHalt()
+
+        # before we continue with the next step
+        # we need to fill in the tape if we ran off the end
+        # or we need to raise an Exception indicating the tape ended
+        if self.tapeIndex < 0 and self.errorOnEOT:
+            raise EndOfTapeError("Fell off left side", self.state, self.tape, self.tapeIndex + 1)
+        elif self.tapeIndex >= len(self.tape) and self.errorOnEOT:
+            raise EndOfTapeError("Fell off right side", self.state, self.tape, self.tapeIndex - 1)
+
+        if self.tapeIndex < 0 and not self.errorOnEOT:
+            self.tape = [' '] + self.tape
+            self.tapeIndex = 0
+        elif self.tapeIndex >= len(self.tape) and not self.errorOnEOT:
+            self.tape.append(' ')
+
         try:
             transition = self.transition_map[(self.state['name'], self.tape[self.tapeIndex])]
         except KeyError as e:
@@ -121,19 +135,17 @@ class TuringMachine:
         elif action.lower() == 'halt':
             self.halted = True
 
-        if self.tapeIndex < 0 and self.errorOnEOT:
-            raise EndOfTapeError("Fell off left side", self.state, self.tape, self.tapeIndex, transition)
-        elif self.tapeIndex >= len(self.tape) and self.errorOnEOT:
-            raise EndOfTapeError("Fell off right side", self.state, self.tape, self.tapeIndex, transition)
-
-        if self.tapeIndex < 0 and not self.errorOnEOT:
-            self.tape = [valueToWrite] + self.tape
-            self.tapeIndex = 0
-        elif self.tapeIndex >= len(self.tape) and not self.errorOnEOT:
-            self.tape.append(valueToWrite)
-
     def print_state(self):
-        print("Current state {} (tape={})".format(self.state['name'], repr(self.tape[self.tapeIndex])))
+        '''
+        If the machine runs off its tape, this method will print a #
+        The machine will subsequently raise or assume missing values are ' '
+        depending on the user settings
+        '''
+        if self.tapeIndex >= len(self.tape) or self.tapeIndex < 0:
+            tapeValue = '#'
+        else:
+            tapeValue = repr(self.tape[self.tapeIndex])
+        print("Current state {} (tape={})".format(self.state['name'], tapeValue))
 
     def ensure_transitions(self):
         '''ensures there is a transition rule for every state with all possible tape values
@@ -165,6 +177,13 @@ class TuringMachine:
             if len(tapeValues) != 0:
                 raise NoSuchTransitionRule(state['name'], tapeValues)
 
+    def dump_tape(self):
+        print('At: {} (tape={})'.format(self.tapeIndex, self.tape[self.tapeIndex]))
+        print(self.tape)
+
+    def print_tape_trimmed(self):
+        trimmed = [i for i in ''.join(self.tape).strip()]
+        print(repr(''.join(trimmed)))
 
 # states.json
 # a list of json objects that represent states
@@ -201,6 +220,9 @@ def main():
         machine.ensure_transitions()
     machine.initialize(options.beginstate, options.index, errorOnEOT=not options.infinite)
     machine.run()
+    print('\nFinished!')
+    print("Tape output (without blanks)")
+    machine.print_tape_trimmed()
 
 
 if __name__ == '__main__':

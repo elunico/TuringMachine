@@ -1,0 +1,31 @@
+[{
+        "startState": "A",
+        "endState": "A",
+        "tapeValue": "0",
+        "newTapeValue": "0",
+        "action": "right"
+},{
+        "startState": "A",
+        "endState": "A",
+        "tapeValue": "1",
+        "newTapeValue": "1",
+        "action": "right"
+},{
+        "startState": "A",
+        "endState": "B",
+        "tapeValue": " ",
+        "newTapeValue": " ",
+        "action": "left"
+},{
+        "startState": "B",
+        "endState": "B",
+        "tapeValue": "1",
+        "newTapeValue": "0",
+        "action": "left"
+},{
+        "startState": "B",
+        "endState": "B",
+        "tapeValue": "0",
+        "newTapeValue": "1",
+        "action": "HALT"
+}]
