@@ -8,6 +8,12 @@ def parse_args():
     ap.add_argument('-s', '--states',  default='states.json', help='path to json file containing the list of state objects')
     ap.add_argument('-t', '--transitions', default='transitions.json', help='path to json file containing the list of transition objects')
     ap.add_argument('-p', '--tape', default='tape.json', help='path to json file containing the list of tape values')
+    ap.add_argument('-b', '--beginstate', default='A', help='Name of the state to begin the simulation in')
+    ap.add_argument('-n', '--index', default=0, type=int, help='0-based index of the tape to begin the simulation in ')
+    ap.add_argument('-i', '--infinite', action='store_true', help='If the -i flag is passed, no EOT errors will be raised and tape will act as though it were infinite (until memory exhausts)')
+    ap.add_argument('-e', '--ensuretransitions', action='store_true', help='Ensure all possible transitions between'
+                    'states are covered and raise an exception if not. Might not do what you expect. '
+                    'Read the documentation for the TuringMachine#ensure_transitions() method')
     options = ap.parse_args()
     if not os.path.exists(options.states):
         ap.error('Could not find states.json. Use -s to pass the path to a json file with state objects')
@@ -149,7 +155,7 @@ class TuringMachine:
         error, however if this method FAILS then it is not clear whether a particular
         run with a given tape will raise the excpetion or not.
         '''
-        raise Warning('This method may not do what you think. Read the documentation')
+        print('WARNING: This TuringMachine#ensure_transitions() may not do what you think. Read the documentation')
         for state in self.states:
             name = state['name']
             tapeValues = ['1', '0', ' ']
@@ -157,7 +163,7 @@ class TuringMachine:
                 if transition['startState'] == name:
                     tapeValues.remove(transition['tapeValue'])
             if len(tapeValues) != 0:
-                raise NoSuchTransitionRule(state, tapeValues)
+                raise NoSuchTransitionRule(state['name'], tapeValues)
 
 
 # states.json
@@ -191,8 +197,8 @@ def main():
         tape = json.load(f)
 
     machine = TuringMachine(states, transitions, tape)
-    machine.ensure_transitions()
-    machine.initialize('A', 3)
+    # machine.ensure_transitions()
+    machine.initialize(options.beginstate, options.index, errorOnEOT=not options.infinite)
     machine.run()
 
 
