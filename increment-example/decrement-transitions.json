@@ -2,13 +2,13 @@
         "startState": "A",
         "endState": "A",
         "tapeValue": "0",
-        "newTapeValue": "0",
+        "newTapeValue": "1",
         "action": "right"
 },{
         "startState": "A",
         "endState": "A",
         "tapeValue": "1",
-        "newTapeValue": "1",
+        "newTapeValue": "0",
         "action": "right"
 },{
         "startState": "A",
@@ -26,6 +26,12 @@
         "startState": "B",
         "endState": "B",
         "tapeValue": "0",
+        "newTapeValue": "1",
+        "action": "HALT"
+},{
+        "startState": "B",
+        "endState": "B",
+        "tapeValue": " ",
         "newTapeValue": "1",
         "action": "HALT"
 }]
