@@ -34,6 +34,21 @@ class NoSuchTransitionRule(KeyError):
         return 'NoSuchTransitionRule: {}'.format(str(self))
 
 
+class EndOfTapeError(EOFError):
+    def __init__(self, message, state, tape, index, transition) -> None:
+        self.message = message
+        self.state = state
+        self.tape = tape
+        self.index = index
+        self.transition = transition
+
+    def __str__(self) -> str:
+        return '{}: state={} (tape={}) trying {}'.format(self.message, repr(self.state['name']), repr(self.tape[self.index]), repr(self.transition))
+
+    def __repr__(self) -> str:
+        return 'EndOfTapeError: {}'.format(str(self))
+
+
 class TuringMachine:
     def __init__(self, states, transitions, tape) -> None:
         # data
@@ -46,6 +61,7 @@ class TuringMachine:
         # state variables
         self.state = None
         self.tapeIndex = -1
+        self.errorOnEOT = True
         self.halted = False
 
     def initialize(self, startState, startIndex, errorOnEOT=True):
@@ -61,6 +77,7 @@ class TuringMachine:
         self.state = self.states_name[startState]
         self.tapeIndex = startIndex
         self.halted = False
+        self.errorOnEOT = errorOnEOT
 
     def run(self, verbose=True):
         '''Run continuously until halt or interrupt'''
@@ -98,6 +115,17 @@ class TuringMachine:
         elif action.lower() == 'halt':
             self.halted = True
 
+        if self.tapeIndex < 0 and self.errorOnEOT:
+            raise EndOfTapeError("Fell off left side", self.state, self.tape, self.tapeIndex, transition)
+        elif self.tapeIndex >= len(self.tape) and self.errorOnEOT:
+            raise EndOfTapeError("Fell off right side", self.state, self.tape, self.tapeIndex, transition)
+
+        if self.tapeIndex < 0 and not self.errorOnEOT:
+            self.tape = [valueToWrite] + self.tape
+            self.tapeIndex = 0
+        elif self.tapeIndex >= len(self.tape) and not self.errorOnEOT:
+            self.tape.append(valueToWrite)
+
     def print_state(self):
         print("Current state {} (tape={})".format(self.state['name'], repr(self.tape[self.tapeIndex])))
 
@@ -133,7 +161,7 @@ def main():
         tape = json.load(f)
 
     machine = TuringMachine(states, transitions, tape)
-    machine.initialize('A', 5)
+    machine.initialize('A', 3)
     machine.run()
 
 

@@ -1,0 +1,9 @@
+[
+  {
+    "startState": "A",
+    "endState": "A",
+    "tapeValue": "1",
+    "newTapeValue": "1",
+    "action": "left"
+  }
+]
