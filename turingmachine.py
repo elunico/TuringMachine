@@ -197,7 +197,8 @@ def main():
         tape = json.load(f)
 
     machine = TuringMachine(states, transitions, tape)
-    # machine.ensure_transitions()
+    if options.ensuretransitions:
+        machine.ensure_transitions()
     machine.initialize(options.beginstate, options.index, errorOnEOT=not options.infinite)
     machine.run()
 
