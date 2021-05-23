@@ -5,21 +5,16 @@ import os.path
 
 def parse_args():
     ap = argparse.ArgumentParser()
-    ap.add_argument('-s', '--states',  default='states.json', help='path to json file containing the list of state objects')
-    ap.add_argument('-t', '--transitions', default='transitions.json', help='path to json file containing the list of transition objects')
-    ap.add_argument('-p', '--tape', default='tape.json', help='path to json file containing the list of tape values')
-    ap.add_argument('-b', '--beginstate', default='A', help='Name of the state to begin the simulation in')
-    ap.add_argument('-n', '--index', default=0, type=int, help='0-based index of the tape to begin the simulation in ')
+    ap.add_argument('-p', '--program',  default='program.json', help='path to json file containing the program object. Must contain the states object list and transition object list')
+    ap.add_argument('-t', '--tape', default='tape.json', help='path to json file containing the list of tape values')
     ap.add_argument('-i', '--infinite', action='store_true', help='If the -i flag is passed, no EOT errors will be raised and tape will act as though it were infinite (until memory exhausts)')
     ap.add_argument('-q', '--quiet', action='store_true', help='Do not print each state as the machine transitions through them')
     ap.add_argument('-e', '--ensuretransitions', action='store_true', help='Ensure all possible transitions between'
                     'states are covered and raise an exception if not. Might not do what you expect. '
                     'Read the documentation for the TuringMachine#ensure_transitions() method')
     options = ap.parse_args()
-    if not os.path.exists(options.states):
-        ap.error('Could not find states.json. Use -s to pass the path to a json file with state objects')
-    if not os.path.exists(options.transitions):
-        ap.error('Could not find transitions.json. Use -t to pass the path to a json file with transition objects')
+    if not os.path.exists(options.program):
+        ap.error('Could not find program.json. Use -s to pass the path to a json file with program object')
     if not os.path.exists(options.tape):
         ap.error('Could not find tape.json. Use -p to pass the path to a json file with tape values')
     return options
@@ -208,11 +203,13 @@ class TuringMachine:
 def main():
     options = parse_args()
 
-    with open(options.states) as f:
-        states = json.load(f)
+    with open(options.program) as f:
+        program = json.load(f)
 
-    with open(options.transitions) as f:
-        transitions = json.load(f)
+    states = [{"name": i} for i in program['states']]
+    transitions = program['transitions']
+    initIndex = int(program['initialIndex'])
+    initStateName = program['initialState']
 
     with open(options.tape) as f:
         tape = json.load(f)
@@ -220,7 +217,7 @@ def main():
     machine = TuringMachine(states, transitions, tape)
     if options.ensuretransitions:
         machine.ensure_transitions()
-    machine.initialize(options.beginstate, options.index, errorOnEOT=not options.infinite, verbose=not options.quiet)
+    machine.initialize(initStateName, initIndex, errorOnEOT=not options.infinite, verbose=not options.quiet)
     print("Machine start!")
     print("Tape output (without blanks)")
     machine.print_tape_trimmed()

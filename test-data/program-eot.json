@@ -1,0 +1,23 @@
+{
+  "states": [
+    "A"
+  ],
+  "transitions": [
+    {
+      "startState": "A",
+      "endState": "A",
+      "tapeValue": "1",
+      "newTapeValue": "1",
+      "action": "left"
+    },
+    {
+      "startState": "A",
+      "endState": "A",
+      "tapeValue": " ",
+      "newTapeValue": " ",
+      "action": "left"
+    }
+  ],
+  "initialState": "A",
+  "initialIndex": "2"
+}
