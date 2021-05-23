@@ -8,35 +8,54 @@ You can find the webpage for creating program JSON files [at this link](https://
 
 ## importing TuringMachine
 First there is a TuringMachine class which can be imported and used in other programs.
-It is (fairly) well documented and hopefully self-explanatory. If you want to use this
-class, you should keep reading, because the schema it expeceted for programs,
-and the tape are described in the sections below.
+It is (fairly) well documented and hopefully self-explanatory, and type hints are used throughout,
+but some time here will be dedicated to explaining it. 
+
+First you will need a program JSON object and a tape JSON object. You can read on below
+(the program.json and tape.json section) to learn what the schema of these files should be. 
+In the event that you do not want to use a file, that is fine, but then you must have a Python
+dictionary object with the same schema as these files. The method for using this class is to 
+read in the `program.json` and `tape.json` files using `json.load()` in the `json` module 
+of python. The resulting loaded dictionaries are then passed to the construction for `TuringMachine`
+The constructor takes care of separating relevant information. Once you construct the turing machine
+with the appropriate dictionaries (created programatically or loaded from a JSON file) you can then
+*optionally* choose to call `TuringMachine#initialize()`, to set the values of `errorOnEOT` and 
+`verbose` which are explained later in this document. After that you can use the `next()` method
+`next()` global function, iterators, or the `run()` method to run the Turing Machine simulation.
+An explanation of other methods can be found below and in their documentation
 
 If you are not interested in importing the class and just want to run a stand-alone
 simulation (or if you do want to import the class but need to know the schema to use
 for the program and tape) keep reading
 
 ## Running the simulations on CLI
-Running the program for a simulation requires no additional libraries. It only requires
-you to do 4 things. Create 2 files and decide on 2 initial conditions. Some of these steps
-can be combined into one using the website above
+Running the program for a simulation requires no additional libraries. It requires a 
+program file which contains the states of the Turing Machine, the rules for moving 
+between states, the initial position along the tape to start, and the initial state
+to start in. In addition it requires a tape file that indicates the values on the 
+tape that the machine uses as I/O. See more about these files below
 
 ### Creating Files
 First we will discuss the creation of the files
 
 #### program.json
 This file contains the states, transition rules, initial state, and initial tape index
-that your program will use. The schema is
+that your program will use. It is a JSON file with the following schema. You can use
+[this website](https://eluni.co/TuringMachine/transition-maker.html) to easily construct 
+one of these files
+```json
 {
   "states": [
     string...
   ],
   "transitions": [
-    {"startState": string, "endState": string, "tapeValue": string, "newTapeValue": string, "action": string}
+    {"startState": string, "endState": string, "tapeValue": string, "newTapeValue": string, "action": string}...
   ],
   "initialState": string,
   "initalIndex": string
 }
+```
+
 The `"states"` key contains all the states the program will use. It is a list of strings.
 These strings will be used for state names throughout the program and this list will
 be considered the master list of states.
@@ -74,7 +93,16 @@ Since Turing machines have infinite tape but computers and people do not have in
 contains a part of the tape that the machine will use. It is a JSON file with a list of String values take from the set
 {"1", "0", " "}. Your tape JSON file can be as long your computer can handle and you can conceive of. You
 will have the option, when running the machine, to being the simulation at any index you choose (indices are 0-based)
-so you may choose to start in the middle of the tape. Note that there are two possible behaviors that will be taken, in the event you "run out of tape". See below for more
+so you may choose to start in the middle of the tape. Note that there are two possible behaviors that will be taken, 
+in the event you "run out of tape". See below for more.
+
+An example of this schema would be something like
+```json
+[
+  "1", "0", "0", " ", " ", " ", " ", "0"
+]
+
+```
 
 #### Error on EOT
 Since Turing machines have infinite tape, but computers don't, there is the possibility of you running off the end
@@ -91,3 +119,6 @@ may be plenty of combinations of states, transitions, and tape that do not cause
 However, using this method and having it succeed means there is not way to raise a missing transition error
 during the normal operation of a simulation. Having this method fail does not mean any particular simulation
 WILL fail but it might, but having the method succeed means no simulation can fail.
+
+The `verbose` option which can set in the `TuringMachine#initialize()` method will print the state and transition
+rules being applied at each step. The default is to have this be true. If you set it to false the steps are not printed

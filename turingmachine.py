@@ -1,17 +1,22 @@
-import json
 import argparse
+import enum
+import json
 import os.path
+from typing import Dict, List, TypedDict, Tuple, Union
 
 
 def parse_args():
     ap = argparse.ArgumentParser()
-    ap.add_argument('-p', '--program',  default='program.json', help='path to json file containing the program object. Must contain the states object list and transition object list')
+    ap.add_argument('-p', '--program', default='program.json',
+                    help='path to json file containing the program object. Must contain the states object list and transition object list')
     ap.add_argument('-t', '--tape', default='tape.json', help='path to json file containing the list of tape values')
-    ap.add_argument('-i', '--infinite', action='store_true', help='If the -i flag is passed, no EOT errors will be raised and tape will act as though it were infinite (until memory exhausts)')
-    ap.add_argument('-q', '--quiet', action='store_true', help='Do not print each state as the machine transitions through them')
+    ap.add_argument('-i', '--infinite', action='store_true',
+                    help='If the -i flag is passed, no EOT errors will be raised and tape will act as though it were infinite (until memory exhausts)')
+    ap.add_argument('-q', '--quiet', action='store_true',
+                    help='Do not print each state as the machine transitions through them')
     ap.add_argument('-e', '--ensuretransitions', action='store_true', help='Ensure all possible transitions between'
-                    'states are covered and raise an exception if not. Might not do what you expect. '
-                    'Read the documentation for the TuringMachine#ensure_transitions() method')
+                                                                           'states are covered and raise an exception if not. Might not do what you expect. '
+                                                                           'Read the documentation for the TuringMachine#ensure_transitions() method')
     options = ap.parse_args()
     if not os.path.exists(options.program):
         ap.error('Could not find program.json. Use -p to pass the path to a json file with program object')
@@ -20,28 +25,54 @@ def parse_args():
     return options
 
 
+class Action(enum.Enum):
+    left = 'left'
+    right = 'right'
+    stay = 'stay'
+    HALT = 'HALT'
+
+
+class TransitionObject(TypedDict):
+    startState: str
+    endState: str
+    tapeValue: str
+    newTapeValue: str
+    action: Action
+
+
+class StateObject(TypedDict):
+    name: str
+
+
+class Program(TypedDict):
+    initialState: str
+    initialIndex: int
+    states: List[str]
+    transitions: List[TransitionObject]
+
+
 class NextAfterHalt(StopIteration):
     pass
 
 
 class NoSuchTransitionRule(KeyError):
-    def __init__(self, state, tapeValue) -> None:
+    def __init__(self, state: str, tape_value: Union[List[str], str]) -> None:
         self.state = state
-        self.tapeValue = tapeValue
+        self.tape_value = tape_value
 
     def __str__(self) -> str:
-        return 'No known transition for machine in state {} with tape value of {}'.format(self.state, self.tapeValue)
+        return 'No known transition for machine in state {} with tape value of {}'.format(self.state, self.tape_value)
 
     def __repr__(self) -> str:
         return 'NoSuchTransitionRule: {}'.format(str(self))
 
 
 class EndOfTapeError(EOFError):
-    def __init__(self, message, state, tape, index) -> None:
-        self.message = message
-        self.state = state
-        self.tape = tape
-        self.index = index
+    def __init__(self, message: str, state: StateObject, tape: List[str], index: int) -> None:
+        self.message: str = message
+        self.state: StateObject = state
+        self.tape: List[str] = tape
+        self.index: int = index
 
     def __str__(self) -> str:
         return '{}: state={} (tape={}) '.format(self.message, repr(self.state['name']), repr(self.tape[self.index]))
@@ -51,48 +82,46 @@ class EndOfTapeError(EOFError):
 
 
 class TuringMachine:
-    def __init__(self, states, transitions, tape) -> None:
+    def __init__(self, program: Program, tape: List[str]) -> None:
         # data
-        self.states = states
-        self.transitions = transitions
-        self.transition_map = {(i['startState'], i['tapeValue']): i for i in transitions}
-        self.states_name = {i['name']: i for i in states}
-        self.tape = tape
+        self.states: List[StateObject] = [{'name': i} for i in program['states']]
+        self.transitions: List[TransitionObject] = program['transitions']
+        self.transition_map: Dict[Tuple[str, str], TransitionObject] = {(i['startState'], i['tapeValue']): i for i in
+                                                                        self.transitions}
+        self.states_name: Dict[str, StateObject] = {i['name']: i for i in self.states}
+        self.tape: List[str] = tape
 
         # state variables
-        self.state = None
-        self.tapeIndex = -1
-        self.errorOnEOT = True
-        self.halted = False
+        self.state: StateObject = self.states_name[program['initialState']]
+        self.tapeIndex: int = int(program['initialIndex'])
+        self.errorOnEOT: bool = True
+        self.halted: bool = False
+        self.verbose: bool = True
+        self.initialize()
 
-    def initialize(self, startState, startIndex, errorOnEOT=True, verbose=True):
-        '''
-        Set up the Turing machine in a specific state and at a specific position
-        along the tape so that it can be run beginning at this place and state
-
-        errorOnEOT: determines whether the Turing machine will error
+    def initialize(self, err_on_eot: bool = True, verbose: bool = True):
+        """
+        err_on_eot: determines whether the Turing machine will error
         if it runs out of tape or if it will append additional values to the tape as needed
         Tape is assumed to be blank if out of range.
         Default value is to error on tape end
-        '''
-        self.state = self.states_name[startState]
-        self.tapeIndex = startIndex
+        """
         self.halted = False
-        self.errorOnEOT = errorOnEOT
+        self.errorOnEOT = err_on_eot
         self.verbose = verbose
 
     def run(self):
-        '''Run continuously until halt or interrupt'''
+        """Run continuously until halt or interrupt"""
         try:
             while not self.halted:
                 self.next()
         except KeyboardInterrupt:
             print("Turing Machine stopped")
-            self.print_state()
+            self.dump_tape()
             return
         except NextAfterHalt:
             print("Turning Machine is halted")
-            self.print_state()
+            self.dump_tape()
             return
 
     def __iter__(self):
@@ -117,36 +146,39 @@ class TuringMachine:
         if self.tapeIndex < 0 and not self.errorOnEOT:
             self.tape = [' '] + self.tape
             self.tapeIndex = 0
-            oldTapeValue = '#'
+            old_tape_value: str = '#'
         elif self.tapeIndex >= len(self.tape) and not self.errorOnEOT:
             self.tape.append(' ')
-            oldTapeValue = '#'
+            old_tape_value: str = '#'
         else:
-            oldTapeValue = self.tape[self.tapeIndex]
+            old_tape_value: str = self.tape[self.tapeIndex]
 
-        thisStep = (self.state['name'], oldTapeValue)
+        this_step: Tuple[str, str] = (self.state['name'], old_tape_value)
         try:
             transition = self.transition_map[(self.state['name'], self.tape[self.tapeIndex])]
         except KeyError as e:
             raise NoSuchTransitionRule(repr(self.state['name']), repr(self.tape[self.tapeIndex])) from e
-        nextState = transition['endState']
-        valueToWrite = transition['newTapeValue']
-        self.tape[self.tapeIndex] = valueToWrite
-        self.state = self.states_name[nextState]
-        action = transition['action']
+        next_state = transition['endState']
+        value_to_write = transition['newTapeValue']
+        self.tape[self.tapeIndex] = value_to_write
+        self.state = self.states_name[next_state]
+        action: str = transition['action'].lower()
         if action == 'left':
             self.tapeIndex -= 1
         elif action == 'right':
             self.tapeIndex += 1
-        elif action.lower() == 'halt':
+        elif action == 'halt':
             self.halted = True
 
-        stateString = "Current state {} (tape={})".format(self.state['name'], repr(oldTapeValue))
-        nextString = ' | Transitioning: {} ➞ {} (tape: {} ➞ {}) then {}'.format(transition['startState'], nextState, repr(oldTapeValue), repr(valueToWrite), action)
         if self.verbose:
-            print(stateString + ' ' + nextString)
+            state_string = "Current state {} (tape={})".format(self.state['name'], repr(old_tape_value))
+            next_string = ' | Transitioning: {} ➞ {} (tape: {} ➞ {}) then {}'.format(transition['startState'],
+                                                                                     next_state,
+                                                                                     repr(old_tape_value),
+                                                                                     repr(value_to_write), action)
+            print(state_string + ' ' + next_string)
 
-        return thisStep
+        return this_step
 
     def transition_for_step(self, step):
         state, tape = step
@@ -191,6 +223,7 @@ class TuringMachine:
                 raise NoSuchTransitionRule(state['name'], tapeValues)
 
     def dump_tape(self):
+        print('Current State: {}'.format(self.state['name']))
         print('At: {} (tape={})'.format(self.tapeIndex, self.tape[self.tapeIndex]))
         print(self.tape)
 
@@ -198,23 +231,6 @@ class TuringMachine:
         trimmed = [i for i in ''.join(self.tape).strip()]
         print(repr(''.join(trimmed)))
 
-# states.json
-# a list of json objects that represent states
-# states require a name
-
-
-# transitions.json
-# a list of json objects that represent states
-# object schema should be
-# {startState: ID, endState: ID, tapeValue: N, newTapeValue: N, action: A}
-# where ID is the name given to the state in the object in states.json
-# and where N is "0", " ", or "1" and A is left, right, stay or HALT
-
-# tape.json
-# a list of tape values in the form ["1", "0", "1", " ", " "] etc.
-# when beginning a Turing machine simulation, a start index on the tape
-# can be provided to simulate infinite left and right tapes
-# the index is 0 based.
 
 def main():
     options = parse_args()
@@ -222,18 +238,13 @@ def main():
     with open(options.program) as f:
         program = json.load(f)
 
-    states = [{"name": i} for i in program['states']]
-    transitions = program['transitions']
-    initIndex = int(program['initialIndex'])
-    initStateName = program['initialState']
-
     with open(options.tape) as f:
         tape = json.load(f)
 
-    machine = TuringMachine(states, transitions, tape)
+    machine = TuringMachine(program, tape)
     if options.ensuretransitions:
         machine.ensure_transitions()
-    machine.initialize(initStateName, initIndex, errorOnEOT=not options.infinite, verbose=not options.quiet)
+    machine.initialize(err_on_eot=not options.infinite, verbose=not options.quiet)
     print("Machine start!")
     print("Tape output (without blanks)")
     machine.print_tape_trimmed()
