@@ -1,0 +1,38 @@
+body {
+  font-family: sans-serif;
+}
+
+#form-container {
+  display: grid;
+  width: max-content;
+  grid-template-columns: max-content 10px max-content;
+  row-gap: 0.25rem;
+}
+
+label {
+  grid-column: 1;
+  text-align: right;
+}
+
+input,
+select {
+  grid-column: 3;
+}
+
+#form-container>p {
+  grid-column: 3;
+}
+
+#transition-container {
+  font-family: monospace;
+}
+
+#states-container {
+  font-family: monospace;
+}
+
+.help {
+  font-weight: bold;
+  color: darkgrey;
+  padding: 0.1rem;
+}
