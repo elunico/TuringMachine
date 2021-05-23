@@ -15,8 +15,8 @@ makeStateButton.onclick = function () {
   let endState = document.getElementById('endState').value;
   // let startTape = document.getElementById('startTape').selectedOptions[0].getAttribute('data-tape');
   // let endTape = document.getElementById('endTape').selectedOptions[0].getAttribute('data-tape');
-  let startTape = document.getElementById('startTape').value.trim().replace('/#/g', ' ');
-  let endTape = document.getElementById('endTape').value.trim().replace('/#/g', ' ');
+  let startTape = document.getElementById('startTape').value.trim().replace(/#/g, ' ');
+  let endTape = document.getElementById('endTape').value.trim().replace(/#/g, ' ');
   let action = document.getElementById('action').selectedOptions[0].id;
 
   // check for needed values
@@ -88,7 +88,7 @@ makeStateButton.onclick = function () {
     }
     // update the list of states in the stateContainer on the page
     stateContainer.textContent = states.join(', ');
-    tapeContainer.textContent = tape.join(', ');
+    tapeContainer.textContent = tape.map(v => v == ' ' ? '#' : v).join(', ');
   }
 
   // append the information nodes so the user can see the program
@@ -121,7 +121,7 @@ makeStateButton.onclick = function () {
   }
   // update the stateContainer & tapeContainer text
   stateContainer.textContent = states.join(', ');
-  tapeContainer.textContent = tape.join(', ');
+  tapeContainer.textContent = tape.map(v => v == ' ' ? '#' : v).join(', ');
 
 };
 

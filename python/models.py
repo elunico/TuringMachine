@@ -82,7 +82,7 @@ class TransitionMap:
         self.transitions: List[Transition] = transitions
         self.map: Dict[Tuple[State, str], Transition] = {(i.start_state, i.tape_value): i for i in self.transitions}
 
-    def __getitem__(self, item: Tuple[State, str]) -> Transition:
+    def _transition_for(self, item: Tuple[State, str]) -> Transition:
         try:
             return self.map[item]
         except KeyError as e:
@@ -92,7 +92,10 @@ class TransitionMap:
         return (state, tape_value) in self.map
 
     def get_result(self, item: Tuple[State, str]) -> TransitionResult:
-        transition = self[item]
+        transition = self._transition_for(item)
+        if transition.new_tape_value == '*':
+            assert item[1] == transition.tape_value
+            transition.new_tape_value = transition.tape_value
         return TransitionResult(transition.end_state, transition.new_tape_value, transition.action)
 
 

@@ -1,3 +1,4 @@
+from models import TransitionResult
 from typing import List, Tuple
 
 from models import State, TransitionMap, NoSuchTransitionRule, Program, NextAfterHalt, EndOfTapeError, Action
@@ -62,18 +63,22 @@ class TuringMachine:
         # save the current state so that we can return it
         this_step: Tuple[str, str] = (self.state.name, old_tape_value)
 
-        transition = self.transition_map[(self.state, self.tape[self.tapeIndex])]
-        self.tape[self.tapeIndex] = transition.new_tape_value
-        self.state = transition.end_state
-        self.perform_action(transition.action)
+        # now that we check for end of tape, the tape has been modified as needed so that we can
+        # property respond to the next transition. old_tape_value may be '#' to indicate
+        # running off the tape, but since we assume # to be ' ' we do not pass old_tape_value to
+        # get_result
+        result: TransitionResult = self.transition_map.get_result((self.state, self.tape[self.tapeIndex]))
+        self.tape[self.tapeIndex] = result.tape_value
+        self.state = result.state
+        self.perform_action(result.action)
 
         if self.verbose:
             state_string = "Current state {} (tape={})".format(self.state.name, repr(old_tape_value))
-            next_string = ' | Transitioning: {} ➞ {} (tape: {} ➞ {}) then {}'.format(transition.start_state,
-                                                                                     transition.end_state,
+            next_string = ' | Transitioning: {} ➞ {} (tape: {} ➞ {}) then {}'.format(this_step[0],
+                                                                                     result.state,
                                                                                      repr(old_tape_value),
-                                                                                     repr(transition.new_tape_value),
-                                                                                     transition.action.lower())
+                                                                                     repr(result.tape_value),
+                                                                                     result.action.lower())
             print(state_string + ' ' + next_string)
 
         return this_step
