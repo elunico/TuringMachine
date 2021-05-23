@@ -1,3 +1,15 @@
+# Turning Machine Simulation
+
+This program (approximately) simulates a Turing machine.
+
+It consists of several parts.
+
+**If you are looking for the webpage to help create a `transitions.json` file [click here](https://eluni.co/TuringMachine/web/transition-maker.html)**
+
+You can continue reading the `README.md` from the repo directly below.
+
+## README.md
+
 ## importing `TuringMachine`
 First there is a TuringMachine class which can be imported and used in other programs.
 It is (fairly) well documented and hopefully self-explanatory, and type hints are used throughout,
@@ -33,7 +45,7 @@ First we will discuss the creation of the files
 #### program.json
 This file contains the states, transition rules, initial state, and initial tape index
 that your program will use. It is a JSON file with the following schema. You can use
-[this website](https://eluni.co/TuringMachine/transition-maker.html) to easily construct 
+[this website](https://eluni.co/TuringMachine/web/transition-maker.html) to easily construct 
 one of these files
 ```json
 {
