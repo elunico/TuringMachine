@@ -95,6 +95,12 @@ class TuringMachine:
             self.print_state()
             return
 
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        return self.next()
+
     def next(self):
         '''transition to the next state and then hold'''
         if self.halted:
@@ -118,6 +124,7 @@ class TuringMachine:
         else:
             oldTapeValue = self.tape[self.tapeIndex]
 
+        thisStep = (self.state['name'], oldTapeValue)
         try:
             transition = self.transition_map[(self.state['name'], self.tape[self.tapeIndex])]
         except KeyError as e:
@@ -138,6 +145,20 @@ class TuringMachine:
         nextString = ' | Transitioning: {} ➞ {} (tape: {} ➞ {}) then {}'.format(transition['startState'], nextState, repr(oldTapeValue), repr(valueToWrite), action)
         if self.verbose:
             print(stateString + ' ' + nextString)
+
+        return thisStep
+
+    def transition_for_step(self, step):
+        state, tape = step
+        if tape == '#' and self.errorOnEOT:
+            if self.tapeIndex < 0:
+                raise EndOfTapeError("Fell off left side", self.state, self.tape, self.tapeIndex + 1)
+            elif self.tapeIndex >= len(self.tape):
+                raise EndOfTapeError("Fell off right side", self.state, self.tape, self.tapeIndex - 1)
+        elif tape == '#' and not self.errorOnEOT:
+            tape = ' '
+
+        return self.transition_map[(state, tape)]
 
     def ensure_transitions(self):
         '''ensures there is a transition rule for every state with all possible tape values
