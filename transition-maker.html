@@ -86,11 +86,6 @@
     <input type="button" id="make-json" value="Create Program JSON File">
   </div>
   <p>
-    <!-- <div>Result:</div>
-    <textarea cols=70 rows=13 id="result">
-
-    </textarea> -->
-
     <h2>Current Program</h2>
     <div><strong>States</strong></div>
     <div id="states-container">&nbsp;</div>
@@ -150,17 +145,12 @@
         newInitOption.textContent = endState;
         initstate.appendChild(newInitOption);
       }
-
-
-
       stateContainer.textContent = states.join(', ');
-
     };
 
     let makeJsonButton = document.getElementById('make-json');
     makeJsonButton.onclick = function () {
       let stateElts = transitionContainer.getElementsByTagName('div');
-      // let transitionString = '[';
       let dataObject = {
         "states": [],
         "transitions": [],
@@ -170,9 +160,6 @@
       for (let stateElt of stateElts) {
         dataObject.transitions.push(JSON.parse(stateElt.getAttribute('data-json-string')));
       }
-      // transitionString = transitionString.substring(0, transitionString.length - 1);
-      // delete trailing comma thanks JSON
-      // transitionString += ']';
 
       for (let state of states) {
         dataObject.states.push(state);
@@ -185,7 +172,6 @@
       let jsonString = JSON.stringify(dataObject);
 
       downloadToFile(jsonString, 'program.json', 'application/json');
-
     };
 
     function downloadToFile(content, filename, contentType) {

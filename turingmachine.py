@@ -14,9 +14,9 @@ def parse_args():
                     'Read the documentation for the TuringMachine#ensure_transitions() method')
     options = ap.parse_args()
     if not os.path.exists(options.program):
-        ap.error('Could not find program.json. Use -s to pass the path to a json file with program object')
+        ap.error('Could not find program.json. Use -p to pass the path to a json file with program object')
     if not os.path.exists(options.tape):
-        ap.error('Could not find tape.json. Use -p to pass the path to a json file with tape values')
+        ap.error('Could not find tape.json. Use -t to pass the path to a json file with tape values')
     return options
 
 
