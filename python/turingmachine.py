@@ -123,7 +123,7 @@ class TuringMachine:
 
         return self.transition_map[(state, tape)]
 
-    def ensure_transitions(self):
+    def ensure_transitions(self, tape_values: Tuple[str] = ('1', '0', ' ')):
         '''ensures there is a transition rule for every state with all possible tape values
         this ensures that the NoSuchTransitionRule error will never be raised while running
         to preventa run from ending due to an oversight. This method may take LONG to complete
@@ -144,14 +144,14 @@ class TuringMachine:
         run with a given tape will raise the excpetion or not.
         '''
         print('WARNING: This TuringMachine#ensure_transitions() may not do what you think. Read the documentation')
+        tape_values = list(tape_values)
         for state in self.states:
             name = state.name
-            tapeValues = ['1', '0', ' ']
             for transition in self.transition_map.transitions:
                 if transition.start_state == name:
-                    tapeValues.remove(transition.tape_value)
-            if len(tapeValues) != 0:
-                raise NoSuchTransitionRule(state.name, tapeValues)
+                    tape_values.remove(transition.tape_value)
+            if len(tape_values) != 0:
+                raise NoSuchTransitionRule(state.name, tape_values)
 
     def dump_tape(self):
         print('Current State: {}'.format(self.state.name))
