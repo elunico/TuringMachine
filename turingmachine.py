@@ -85,8 +85,6 @@ class TuringMachine:
         '''Run continuously until halt or interrupt'''
         try:
             while not self.halted:
-                if self.verbose:
-                    self.print_state()
                 self.next()
         except KeyboardInterrupt:
             print("Turing Machine stopped")
@@ -113,8 +111,12 @@ class TuringMachine:
         if self.tapeIndex < 0 and not self.errorOnEOT:
             self.tape = [' '] + self.tape
             self.tapeIndex = 0
+            oldTapeValue = '#'
         elif self.tapeIndex >= len(self.tape) and not self.errorOnEOT:
             self.tape.append(' ')
+            oldTapeValue = '#'
+        else:
+            oldTapeValue = self.tape[self.tapeIndex]
 
         try:
             transition = self.transition_map[(self.state['name'], self.tape[self.tapeIndex])]
@@ -132,17 +134,10 @@ class TuringMachine:
         elif action.lower() == 'halt':
             self.halted = True
 
-    def print_state(self):
-        '''
-        If the machine runs off its tape, this method will print a #
-        The machine will subsequently raise or assume missing values are ' '
-        depending on the user settings
-        '''
-        if self.tapeIndex >= len(self.tape) or self.tapeIndex < 0:
-            tapeValue = '#'
-        else:
-            tapeValue = repr(self.tape[self.tapeIndex])
-        print("Current state {} (tape={})".format(self.state['name'], tapeValue))
+        stateString = "Current state {} (tape={})".format(self.state['name'], repr(oldTapeValue))
+        nextString = ' | Transitioning: {} ➞ {} (tape: {} ➞ {}) then {}'.format(transition['startState'], nextState, repr(oldTapeValue), repr(valueToWrite), action)
+        if self.verbose:
+            print(stateString + ' ' + nextString)
 
     def ensure_transitions(self):
         '''ensures there is a transition rule for every state with all possible tape values
