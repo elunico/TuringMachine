@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Transition Creator</title>
+  <title>TM Program Maker</title>
   <style>
     #form-container {
       display: grid;
@@ -28,15 +28,27 @@
       grid-column: 3;
     }
 
-    #state-container {
+    #transition-container {
       font-family: monospace;
+    }
+
+    #states-container {
+      font-family: monospace;
+    }
+
+    .help {
+      font-weight: bold;
+      color: darkgrey;
+      padding: 0.1rem;
     }
   </style>
 </head>
 
 <body>
-  <h1>Turing Machine Transitions JSON File Creator</h1>
+  <h1>Turing Machine Program JSON File Creator</h1>
+  <p><i>States will be added automatically as transitions use them.</i></p>
   <div id="form-container">
+    <div class="help">Transition Rules</div>
     <label for="startState">Start State</label>
     <input type="text" name="startState" id="startState" />
     <label for="startTape">Start Tape Value</label>
@@ -62,20 +74,35 @@
       <option id="HALT" style="color: red">HALT</option>
     </select>
     <p></p>
-    <input type="button" id="create-state" value="Add State">
-    <input type="button" id="make-json" value="Download JSON file">
+    <input type="button" id="create-state" value="Add Transition Rule">
+    <div class="help">Program Parameters</div>
+    <label for="initstate">Initial State</label>
+
+    <select id="initstate">
+    </select>
+    <label for="initindex">Initial Tape Index</label>
+
+    <input type="number" id="initindex" value="0">
+    <input type="button" id="make-json" value="Create Program JSON File">
   </div>
   <p>
     <!-- <div>Result:</div>
     <textarea cols=70 rows=13 id="result">
 
     </textarea> -->
+
+    <h2>Current Program</h2>
     <div><strong>States</strong></div>
-    <div id="state-container"></div>
+    <div id="states-container">&nbsp;</div>
+
+    <div><strong>Transitions</strong></div>
+    <div id="transition-container"></div>
   </p>
 
   <script>
-    let stateContainer = document.getElementById('state-container');
+    let states = [];
+    let stateContainer = document.getElementById('states-container');
+    let transitionContainer = document.getElementById('transition-container');
     let makeStateButton = document.getElementById('create-state');
     makeStateButton.onclick = function () {
       let startState = document.getElementById('startState').value;
@@ -103,26 +130,61 @@
       deleteButton.type = 'button';
       deleteButton.value = 'Delete State';
       deleteButton.onclick = function () {
-        stateContainer.removeChild(stateNode);
+        transitionContainer.removeChild(stateNode);
       }
 
       stateNode.appendChild(deleteButton);
-      stateContainer.appendChild(stateNode);
+      transitionContainer.appendChild(stateNode);
+
+      if (states.indexOf(startState) < 0) {
+        states.push(startState);
+        let newInitOption = document.createElement('option');
+        newInitOption.setAttribute('data-state-name', startState);
+        newInitOption.textContent = startState;
+        initstate.appendChild(newInitOption);
+      }
+      if (states.indexOf(endState) < 0) {
+        states.push(endState);
+        let newInitOption = document.createElement('option');
+        newInitOption.setAttribute('data-state-name', endState);
+        newInitOption.textContent = endState;
+        initstate.appendChild(newInitOption);
+      }
+
+
+
+      stateContainer.textContent = states.join(', ');
 
     };
 
     let makeJsonButton = document.getElementById('make-json');
     makeJsonButton.onclick = function () {
-      let stateElts = stateContainer.getElementsByTagName('div');
-      let jsonString = '[';
+      let stateElts = transitionContainer.getElementsByTagName('div');
+      // let transitionString = '[';
+      let dataObject = {
+        "states": [],
+        "transitions": [],
+        initialState: undefined,
+        initialIndex: undefined
+      };
       for (let stateElt of stateElts) {
-        jsonString += stateElt.getAttribute('data-json-string') + ',';
+        dataObject.transitions.push(JSON.parse(stateElt.getAttribute('data-json-string')));
       }
-      jsonString = jsonString.substring(0, jsonString.length - 1); // delete trailing comma thanks JSON
-      jsonString += ']';
+      // transitionString = transitionString.substring(0, transitionString.length - 1);
+      // delete trailing comma thanks JSON
+      // transitionString += ']';
 
+      for (let state of states) {
+        dataObject.states.push(state);
+      }
 
-      downloadToFile(jsonString, 'transitions.json', 'application/json');
+      dataObject.initialState = document.getElementById('initstate').selectedOptions[0].getAttribute(
+        'data-state-name');
+      dataObject.initialIndex = document.getElementById('initindex').value;
+
+      let jsonString = JSON.stringify(dataObject);
+
+      downloadToFile(jsonString, 'program.json', 'application/json');
 
     };
 
