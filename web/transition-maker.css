@@ -31,6 +31,10 @@ select {
   font-family: monospace;
 }
 
+#tape-container {
+  font-family: monospace;
+}
+
 .help {
   font-weight: bold;
   color: darkgrey;

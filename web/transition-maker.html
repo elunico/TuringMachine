@@ -12,25 +12,34 @@
 <body>
   <h1>Turing Machine Program JSON File Creator</h1>
   <p><i>States will be added automatically as transitions use them.</i></p>
+  <p>
+    Use <code>*</code> (asterisk) to indicate that the tape symbol should not change.<br>
+    Use <code>#</code> (hashtag) to indicate that the tape should be blank<br>
+    <strong>
+      Make sure you keep your tape symbols and state names consistent!
+    </strong>
+  </p>
   <div id="form-container">
     <div class="help">Transition Rules</div>
-    <label for="startState">Start State</label>
+    <label for="startState">Matching State</label>
     <input type="text" name="startState" id="startState" />
-    <label for="startTape">Start Tape Value</label>
-    <select id="startTape">
+    <label for="startTape">Matching Tape Value</label>
+    <!-- <select id="startTape">
       <option data-tape="0">0</option>
       <option data-tape="1">1</option>
       <option data-tape=" ">&nbsp; (blank)</option>
-    </select>
+    </select> -->
+    <input type="text" name="startTape" id="startTape">
     <p></p>
     <label for="endState">Resulting State</label>
     <input type="text" name="endState" id="endState" />
     <label for="endTape">Resulting Tape Value</label>
-    <select id="endTape">
+    <!-- <select id="endTape">
       <option data-tape="0">0</option>
       <option data-tape="1">1</option>
       <option data-tape=" ">&nbsp; (blank)</option>
-    </select>
+    </select> -->
+    <input type="text" name="endTape" id="endTape">
     <label for="action">Result Action</label>
     <select id="action">
       <option id="stay">Stay</option>
@@ -54,6 +63,9 @@
     <h2>Current Program</h2>
     <div><strong>States</strong></div>
     <div id="states-container">&nbsp;</div>
+
+    <div><strong>Possible Tape Values</strong></div>
+    <div id="tape-container">&nbsp;</div>
 
     <div><strong>Transitions</strong></div>
     <div id="transition-container"></div>
