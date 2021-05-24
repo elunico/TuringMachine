@@ -1,5 +1,5 @@
 from models import TransitionResult
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 
 from models import State, TransitionMap, NoSuchTransitionRule, Program, NextAfterHalt, EndOfTapeError, Action
 
@@ -112,17 +112,13 @@ class TuringMachine:
             old_tape_value: str = self.tape[self.tapeIndex]
         return old_tape_value
 
-    def transition_for_step(self, step: Tuple[State, str]) -> TransitionResult:
-        state, tape = step
-        if tape == '#' and self.errorOnEOT:
-            if self.tapeIndex < 0:
-                raise EndOfTapeError("Fell off left side", self.state, self.tape, self.tapeIndex + 1)
-            elif self.tapeIndex >= len(self.tape):
-                raise EndOfTapeError("Fell off right side", self.state, self.tape, self.tapeIndex - 1)
-        elif tape == '#' and not self.errorOnEOT:
-            tape = ' '
+    def transition_for_step(self, state: State, tape_value: str) -> Optional[TransitionResult]:
+        if tape_value == '#' and not self.errorOnEOT:
+            tape_value = ' '
+        elif tape_value == '#' and self.errorOnEOT:
+            raise EndOfTapeError('No transition for step off of tape', state, [tape_value], 0)
 
-        return self.transition_map.get_result(state, tape)
+        return self.transition_map.get_result(state, tape_value)
 
     def ensure_transitions(self, tape_values: Tuple[str] = ('1', '0', ' ')):
         """ensures there is a transition rule for every state with all possible tape values
