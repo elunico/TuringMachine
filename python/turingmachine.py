@@ -39,18 +39,14 @@ class TuringMachine:
             print("Turing Machine stopped")
             self.dump_tape()
             return
-        except NextAfterHalt:
-            print("Turning Machine is halted")
-            self.dump_tape()
-            return
 
-    def __iter__(self):
+    def __iter__(self) -> 'TuringMachine':
         return self
 
-    def __next__(self):
+    def __next__(self) -> Tuple[State, str]:
         return self.next()
 
-    def next(self):
+    def next(self) -> Tuple[State, str]:
         """transition to the next state and then hold"""
         if self.halted:
             raise NextAfterHalt()
@@ -58,10 +54,10 @@ class TuringMachine:
         # before we continue with the next step
         # we need to fill in the tape if we ran off the end
         # or we need to raise an Exception indicating the tape ended
-        old_tape_value = self._check_end_of_tape()
+        old_tape_value: str = self._check_end_of_tape()
 
         # save the current state so that we can return it
-        this_step: Tuple[str, str] = (self.state.name, old_tape_value)
+        this_step: Tuple[State, str] = (self.state, old_tape_value)
 
         # now that we check for end of tape, the tape has been modified as needed so that we can
         # property respond to the next transition. old_tape_value may be '#' to indicate
@@ -116,7 +112,7 @@ class TuringMachine:
             old_tape_value: str = self.tape[self.tapeIndex]
         return old_tape_value
 
-    def transition_for_step(self, step: Tuple[State, str]):
+    def transition_for_step(self, step: Tuple[State, str]) -> TransitionResult:
         state, tape = step
         if tape == '#' and self.errorOnEOT:
             if self.tapeIndex < 0:
@@ -126,7 +122,7 @@ class TuringMachine:
         elif tape == '#' and not self.errorOnEOT:
             tape = ' '
 
-        return self.transition_map[(state, tape)]
+        return self.transition_map.get_result((state, tape))
 
     def ensure_transitions(self, tape_values: Tuple[str] = ('1', '0', ' ')):
         '''ensures there is a transition rule for every state with all possible tape values
