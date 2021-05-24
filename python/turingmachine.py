@@ -112,7 +112,10 @@ class TuringMachine:
             old_tape_value: str = self.tape[self.tapeIndex]
         return old_tape_value
 
-    def transition_for_step(self, state: State, tape_value: str) -> Optional[TransitionResult]:
+    def transition_for_step(self, state: State, tape_value: str) -> TransitionResult:
+        """
+        :raises: EndOfTapeError if the machine is set to errorOnEot and tape_value == '#'
+        """
         if tape_value == '#' and not self.errorOnEOT:
             tape_value = ' '
         elif tape_value == '#' and self.errorOnEOT:
