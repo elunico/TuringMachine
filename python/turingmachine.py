@@ -66,7 +66,7 @@ class TuringMachine:
         result: TransitionResult = self.transition_map.get_result(self.state, self.tape[self.tapeIndex])
         self.tape[self.tapeIndex] = result.tape_value
         self.state = result.state
-        self.perform_action(result.action)
+        self._perform_action(result.action)
 
         if self.verbose:
             state_string = "Current state {} (tape={})".format(self.state.name, repr(old_tape_value))
@@ -79,7 +79,7 @@ class TuringMachine:
 
         return this_step
 
-    def perform_action(self, action: Action):
+    def _perform_action(self, action: Action):
         action = action.lower()
         if action == 'left':
             self.tapeIndex -= 1
