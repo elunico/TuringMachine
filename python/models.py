@@ -82,19 +82,20 @@ class TransitionMap:
         self.transitions: List[Transition] = transitions
         self.map: Dict[Tuple[State, str], Transition] = {(i.start_state, i.tape_value): i for i in self.transitions}
 
-    def _transition_for(self, item: Tuple[State, str]) -> Transition:
+    def _transition_for(self, state: State, tape_value: str) -> Transition:
+        item = (state, tape_value)
         try:
             return self.map[item]
-        except KeyError as e:
+        except KeyError:
             raise NoSuchTransitionRule(item[0].name, item[1])
 
     def understands(self, state: State, tape_value: str) -> bool:
         return (state, tape_value) in self.map
 
-    def get_result(self, item: Tuple[State, str]) -> TransitionResult:
-        transition = self._transition_for(item)
+    def get_result(self, state: State, tape_value: str) -> TransitionResult:
+        transition = self._transition_for(state, tape_value)
         if transition.new_tape_value == '*':
-            assert item[1] == transition.tape_value
+            assert tape_value == transition.tape_value
             transition.new_tape_value = transition.tape_value
         return TransitionResult(transition.end_state, transition.new_tape_value, transition.action)
 

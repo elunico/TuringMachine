@@ -63,7 +63,7 @@ class TuringMachine:
         # property respond to the next transition. old_tape_value may be '#' to indicate
         # running off the tape, but since we assume # to be ' ' we do not pass old_tape_value to
         # get_result
-        result: TransitionResult = self.transition_map.get_result((self.state, self.tape[self.tapeIndex]))
+        result: TransitionResult = self.transition_map.get_result(self.state, self.tape[self.tapeIndex])
         self.tape[self.tapeIndex] = result.tape_value
         self.state = result.state
         self.perform_action(result.action)
@@ -122,12 +122,12 @@ class TuringMachine:
         elif tape == '#' and not self.errorOnEOT:
             tape = ' '
 
-        return self.transition_map.get_result((state, tape))
+        return self.transition_map.get_result(state, tape)
 
     def ensure_transitions(self, tape_values: Tuple[str] = ('1', '0', ' ')):
-        '''ensures there is a transition rule for every state with all possible tape values
+        """ensures there is a transition rule for every state with all possible tape values
         this ensures that the NoSuchTransitionRule error will never be raised while running
-        to preventa run from ending due to an oversight. This method may take LONG to complete
+        to prevents run from ending due to an oversight. This method may take LONG to complete
 
         Note that it is not always necessary to call this method. Sometimes a machine will run
         perfectly fine without a valid transition between all states. Calling this method
@@ -143,7 +143,7 @@ class TuringMachine:
         If this method exits successfully, it is not possible to raise a NoSuchTransitionRule
         error, however if this method FAILS then it is not clear whether a particular
         run with a given tape will raise the excpetion or not.
-        '''
+        """
         print('WARNING: This TuringMachine#ensure_transitions() may not do what you think. Read the documentation')
         tape_values = list(tape_values)
         for state in self.states:
