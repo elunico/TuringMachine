@@ -1,4 +1,4 @@
-from models import TransitionResult
+from models import TransitionResult, check_state
 from typing import List, Tuple, Optional
 
 from models import State, TransitionMap, NoSuchTransitionRule, Program, NextAfterHalt, EndOfTapeError, Action
@@ -116,6 +116,7 @@ class TuringMachine:
         """
         :raises: EndOfTapeError if the machine is set to errorOnEot and tape_value == '#'
         """
+        check_state('transition_for_step()', 'state', state)
         if tape_value == '#' and not self.errorOnEOT:
             tape_value = ' '
         elif tape_value == '#' and self.errorOnEOT:

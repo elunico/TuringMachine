@@ -1,9 +1,16 @@
 import dataclasses
 import enum
 import json
-from typing import Tuple, TypedDict, List, Dict, Union, TextIO
+from typing import Tuple, TypedDict, List, Dict, Union, TextIO, Any
 
 
+def check_state(method_name: str, param_name: str, value: Any):
+    if not isinstance(value, State):
+        raise TypeError(
+            '{} method requires parameter {} to be type State not {}'.format(method_name, param_name, type(value)))
+
+
+# decorator function
 def describe(cls):
     def __str__(self):
         return '{}[{}]'.format(self.__class__.__name__,
@@ -14,6 +21,7 @@ def describe(cls):
     return cls
 
 
+# decorator function
 def dataclass(cls):
     cls = dataclasses.dataclass(cls, init=True, repr=True, eq=True, frozen=True)
     cls = describe(cls)
@@ -59,6 +67,8 @@ class Transition:
 
     def __init__(self, start_state: State, end_state: State, tapeValue: str, newTapeValue: str,
                  action: Action):
+        check_state('Transition()', 'start_state', start_state)
+        check_state('Transition()', 'end_state', end_state)
         self.start_state: State = start_state
         self.end_state: State = end_state
         self.tape_value: str = tapeValue
@@ -66,7 +76,11 @@ class Transition:
         self.action: Action = action
 
     def matches(self, state: State, tape_value: str) -> bool:
+        check_state('matches', 'state', state)
         return self.start_state == state and self.tape_value == tape_value
+
+    def get_result(self) -> 'TransitionResult':
+        return TransitionResult(self.end_state, self.new_tape_value, self.action)
 
 
 @dataclass
@@ -90,9 +104,11 @@ class TransitionMap:
             raise NoSuchTransitionRule(item[0].name, item[1])
 
     def understands(self, state: State, tape_value: str) -> bool:
+        check_state('understands()', 'state', state)
         return (state, tape_value) in self.map
 
     def get_result(self, state: State, tape_value: str) -> TransitionResult:
+        check_state('understands()', 'state', state)
         transition = self._transition_for(state, tape_value)
         if transition.new_tape_value == '*':
             assert tape_value == transition.tape_value
@@ -152,7 +168,8 @@ class EndOfTapeError(EOFError):
         self.index: int = index
 
     def __str__(self) -> str:
-        return '{}: state={} (tape={}) '.format(self.message, repr(self.state.name), repr(self.tape[self.index]))
+        return '{}: Last valid position: state={} (tape={}) '.format(self.message, repr(self.state.name),
+                                                                     repr(self.tape[self.index]))
 
     def __repr__(self) -> str:
         return 'EndOfTapeError: {}'.format(str(self))
