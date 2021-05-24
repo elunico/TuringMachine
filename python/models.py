@@ -40,12 +40,12 @@ class State:
     registry = {}
 
     @classmethod
-    def get(cls, name: str):
+    def get(cls, name: str) -> 'State':
         if name not in cls.registry:
             cls.registry[name] = cls(name)
         return cls.registry[name]
 
-    def __init__(self, name: str):
+    def __init__(self, name: str) -> None:
         """Do not call __init__ call State.get"""
         self.name: str = name
 
@@ -109,7 +109,7 @@ class ProgramJSONObject(TypedDict):
 @describe
 class Program:
     @classmethod
-    def from_file(cls, f: Union[str, TextIO]):
+    def from_file(cls, f: Union[str, TextIO]) -> 'Program':
         if isinstance(f, str):
             file = open(f)
         else:
