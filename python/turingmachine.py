@@ -1,10 +1,20 @@
-from models import TransitionResult, check_state
-from typing import List, Tuple, Optional
+from typing import List, Tuple
 
 from models import State, TransitionMap, NoSuchTransitionRule, Program, NextAfterHalt, EndOfTapeError, Action
+from models import TransitionResult, check_state
 
 
 class TuringMachine:
+    @classmethod
+    def accepts(cls, program: Program, tape: List[str], error_on_eot: bool = True, verbose: bool = True) -> bool:
+        f = cls(program, tape)
+        try:
+            f.initialize(error_on_eot, verbose)
+            f.run()
+            return True
+        except NoSuchTransitionRule as e:
+            return False
+
     def __init__(self, program: Program, tape: List[str]) -> None:
         # data
         self.states: List[State] = program.states

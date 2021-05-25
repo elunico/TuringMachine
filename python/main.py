@@ -1,6 +1,6 @@
 import argparse
-import os
 import json
+import os
 
 from models import Program
 from turingmachine import TuringMachine
@@ -8,12 +8,15 @@ from turingmachine import TuringMachine
 
 def parse_args():
     ap = argparse.ArgumentParser()
-    ap.add_argument('--explain', required=False, help='Print out the "tape-format" and "output-format" keys of the given program JSON file passed to --expalin if they exist and exit')
+    ap.add_argument('--explain', required=False,
+                    help='Print out the "tape-format" and "output-format" keys of the given program JSON file passed to --expalin if they exist and exit')
     ap.add_argument('-p', '--program', default='program.json',
                     help='path to json file containing the program object. Must contain the states object list and transition object list')
     ap.add_argument('-t', '--tape', default='tape.json', help='path to json file containing the list of tape values')
     ap.add_argument('-i', '--infinite', action='store_true',
                     help='If the -i flag is passed, no EOT errors will be raised and tape will act as though it were infinite (until memory exhausts)')
+    ap.add_argument('-a', '--accepts', action='store_true',
+                    help='if this flag is passed, rather than run the simulation to completion (or error) the program will print if the given tape is accepted by the machine\'s program or not')
     ap.add_argument('-q', '--quiet', action='store_true',
                     help='Do not print each state as the machine transitions through them')
     ap.add_argument('-e', '--ensuretransitions', action='store_true', help='Ensure all possible transitions between'
@@ -45,6 +48,11 @@ def main():
         tape = json.load(f)
 
     program = Program.from_file(options.program)
+
+    if options.accepts:
+        print(TuringMachine.accepts(program, tape, error_on_eot=not options.infinite, verbose=not options.quiet))
+        return
+
     machine = TuringMachine(program, tape)
     if options.ensuretransitions:
         machine.ensure_transitions()
