@@ -84,13 +84,13 @@ essentially describing the output of the tape
 **startState** - the ***name*** of the state the turing machine must be in to use this rule. For instance a startState of "A" means this rule applies only if the machine is in the state "A" (but not always as transition rules also consider the value on the tape
 [see below])
 
-**tapeValue** - this is the value of the tape that must be **read** to apply this rule. This value together with the `startState` key determine whether a rule is applied. Only if **the startState matches the current state *and* the current tape value matches tapeValue** will this transition rule be applied (Values inlcude "1" or "0" or " ")
+**tapeValue** - this is the value of the tape that must be **read** to apply this rule. This value together with the `startState` key determine whether a rule is applied. Only if **the startState matches the current state *and* the current tape value matches tapeValue** will this transition rule be applied.
 
 **endState** - this is the ***name*** of the state that the Turing machine will be in **after** applying this rule if it fits
 the needed critieria
 
 **newTapeValue** - this is the value that will be written to the **current position** of the tape before performing the
-action specified by the `action` key (Values inlcude "1" or "0" or " ")
+action specified by the `action` key. You can use an asterisk '*' to indicate the tape value should be the same as it was before, regardless of what it was.
 
 **action** - this key tells the machine what to do after it has written the new tape value and changed states. The turing machine will either stay where it is on the tape, move left along the tape, move right along the tape, or HALT and end the simulation. (Values can be "stay", "left", "right", or "HALT"). Note that after this transition, since this is a simulation you may run out of tape (unlike a real turing machine which has infinite tape) see below for more information.
 
@@ -100,8 +100,7 @@ tape value that it does not have rules for transitioning out of. This will raise
 
 #### tape.json
 Since Turing machines have infinite tape but computers and people do not have infinite memory, the tape JSON file
-contains a part of the tape that the machine will use. It is a JSON file with a list of String values take from the set
-{"1", "0", " "}. Your tape JSON file can be as long your computer can handle and you can conceive of. You
+contains a part of the tape that the machine will use. It is a JSON file with a list of String values take from an arbitrary set. Your tape JSON file can be as long your computer can handle and you can conceive of. You
 will have the option, when running the machine, to being the simulation at any index you choose (indices are 0-based)
 so you may choose to start in the middle of the tape. Note that there are two possible behaviors that will be taken,
 in the event you "run out of tape". See below for more.
