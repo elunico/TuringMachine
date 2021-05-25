@@ -9,17 +9,17 @@ You can find the webpage for creating program JSON files [at this link](https://
 ## importing TuringMachine
 First there is a TuringMachine class which can be imported and used in other programs.
 It is (fairly) well documented and hopefully self-explanatory, and type hints are used throughout,
-but some time here will be dedicated to explaining it. 
+but some time here will be dedicated to explaining it.
 
 First you will need a program JSON object and a tape JSON object. You can read on below
-(the program.json and tape.json section) to learn what the schema of these files should be. 
+(the program.json and tape.json section) to learn what the schema of these files should be.
 In the event that you do not want to use a file, that is fine, but then you must have a Python
-dictionary object with the same schema as these files. The method for using this class is to 
-read in the `program.json` and `tape.json` files using `json.load()` in the `json` module 
+dictionary object with the same schema as these files. The method for using this class is to
+read in the `program.json` and `tape.json` files using `json.load()` in the `json` module
 of python. The resulting loaded dictionaries are then passed to the construction for `TuringMachine`
 The constructor takes care of separating relevant information. Once you construct the turing machine
 with the appropriate dictionaries (created programatically or loaded from a JSON file) you can then
-*optionally* choose to call `TuringMachine#initialize()`, to set the values of `errorOnEOT` and 
+*optionally* choose to call `TuringMachine#initialize()`, to set the values of `errorOnEOT` and
 `verbose` which are explained later in this document. After that you can use the `next()` method
 `next()` global function, iterators, or the `run()` method to run the Turing Machine simulation.
 An explanation of other methods can be found below and in their documentation
@@ -29,10 +29,10 @@ simulation (or if you do want to import the class but need to know the schema to
 for the program and tape) keep reading
 
 ## Running the simulations on CLI
-Running the program for a simulation requires no additional libraries. It requires a 
-program file which contains the states of the Turing Machine, the rules for moving 
+Running the program for a simulation requires no additional libraries. It requires a
+program file which contains the states of the Turing Machine, the rules for moving
 between states, the initial position along the tape to start, and the initial state
-to start in. In addition it requires a tape file that indicates the values on the 
+to start in. In addition it requires a tape file that indicates the values on the
 tape that the machine uses as I/O. See more about these files below
 
 ### Creating Files
@@ -41,7 +41,7 @@ First we will discuss the creation of the files
 #### program.json
 This file contains the states, transition rules, initial state, and initial tape index
 that your program will use. It is a JSON file with the following schema. You can use
-[this website](https://eluni.co/TuringMachine/web/transition-maker.html) to easily construct 
+[this website](https://eluni.co/TuringMachine/web/transition-maker.html) to easily construct
 one of these files
 ```json
 {
@@ -52,7 +52,9 @@ one of these files
     {"startState": string, "endState": string, "tapeValue": string, "newTapeValue": string, "action": string}...
   ],
   "initialState": string,
-  "initalIndex": string
+  "initalIndex": string,
+  "tape-format": string?,
+  "output-format": string?
 }
 ```
 
@@ -68,7 +70,15 @@ state names (see above) and values of the tape (see below) and writing the
 `"intialState"` and `"initialIndex"` describe the state to begin in and the place along the
 tape (0-based) to begin at (see below)
 
-Note that `states`, `transitions`, `initalState` and `initialIndex` are for the entire program while `startState`, `endState`, `tapeValue`, `newTapeValue`, and `action` exist inside the objects in the list of `transitions`
+Note that `states`, `transitions`, `initalState` and `initialIndex` are for the entire program while `startState`, `endState`, `tapeValue`, `newTapeValue`, and `action` exist inside the objects in the list of `transitions`.
+
+`program.json` files are allowed to contain a `tape-format` key. This key is not used programmatically and
+may be omitted completely, however, it can be read by a person or output by a system to indicate the
+expected format of the tapes being fed into the program. The format of this string is not defined
+
+Similarly, the `program.json` file may contain an `output-format` key. This key is optional
+like `tape-format` and works in a similar way, but to explain the format of the tape upon completion,
+essentially describing the output of the tape
 
 #### Detailed explanation of transition object keys
 **startState** - the ***name*** of the state the turing machine must be in to use this rule. For instance a startState of "A" means this rule applies only if the machine is in the state "A" (but not always as transition rules also consider the value on the tape
@@ -93,7 +103,7 @@ Since Turing machines have infinite tape but computers and people do not have in
 contains a part of the tape that the machine will use. It is a JSON file with a list of String values take from the set
 {"1", "0", " "}. Your tape JSON file can be as long your computer can handle and you can conceive of. You
 will have the option, when running the machine, to being the simulation at any index you choose (indices are 0-based)
-so you may choose to start in the middle of the tape. Note that there are two possible behaviors that will be taken, 
+so you may choose to start in the middle of the tape. Note that there are two possible behaviors that will be taken,
 in the event you "run out of tape". See below for more.
 
 An example of this schema would be something like

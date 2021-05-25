@@ -1,0 +1,86 @@
+{
+  "states": [
+    "Q0",
+    "Q1",
+    "Q2",
+    "Q3",
+    "Q5",
+    "Q4"
+  ],
+  "transitions": [
+    {
+      "startState": "Q0",
+      "endState": "Q1",
+      "tapeValue": "0",
+      "newTapeValue": "X",
+      "action": "right"
+    },
+    {
+      "startState": "Q1",
+      "endState": "Q1",
+      "tapeValue": "0",
+      "newTapeValue": "*",
+      "action": "right"
+    },
+    {
+      "startState": "Q2",
+      "endState": "Q2",
+      "tapeValue": "0",
+      "newTapeValue": "*",
+      "action": "right"
+    },
+    {
+      "startState": "Q2",
+      "endState": "Q3",
+      "tapeValue": " ",
+      "newTapeValue": "0",
+      "action": "left"
+    },
+    {
+      "startState": "Q3",
+      "endState": "Q3",
+      "tapeValue": "0",
+      "newTapeValue": "*",
+      "action": "left"
+    },
+    {
+      "startState": "Q0",
+      "endState": "Q5",
+      "tapeValue": "c",
+      "newTapeValue": " ",
+      "action": "HALT"
+    },
+    {
+      "startState": "Q3",
+      "endState": "Q4",
+      "tapeValue": "c",
+      "newTapeValue": "*",
+      "action": "left"
+    },
+    {
+      "startState": "Q4",
+      "endState": "Q4",
+      "tapeValue": "0",
+      "newTapeValue": "*",
+      "action": "left"
+    },
+    {
+      "startState": "Q4",
+      "endState": "Q0",
+      "tapeValue": "X",
+      "newTapeValue": "*",
+      "action": "right"
+    },
+    {
+      "startState": "Q1",
+      "endState": "Q2",
+      "tapeValue": "c",
+      "newTapeValue": "*",
+      "action": "right"
+    }
+  ],
+  "initialState": "Q0",
+  "initialIndex": "0",
+  "tape-format": "Tape should be unary numbers. The first number to add should be written in unary starting at index 0 of the tape and it should be written out using '0' characters. The second number is written in the same way separated from the first number by a single lowercase 'c' on the tape. This example was taken from https://www.geeksforgeeks.org/turing-machine-addition/",
+  "output-format": "The resulting tape will be a number of Xs equal to the length of the first unary number, then a blank space, then a unary representation of the sum of the two inputs written in '0' chars. "
+}

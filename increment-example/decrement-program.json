@@ -85,5 +85,7 @@
     }
   ],
   "initialState": "A",
-  "initialIndex": "0"
+  "initialIndex": "0",
+  "tape-format": "Tapes should be a binary number (1 and 0 only) with the highest order bits to the left. The should have their highest bit at index 0 of the tape.",
+  "output-format": "A binary number representing the input decremented by 1. MSB in index 0"
 }
