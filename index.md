@@ -15,14 +15,16 @@ First there is a TuringMachine class which can be imported and used in other pro
 It is (fairly) well documented and hopefully self-explanatory, and type hints are used throughout,
 but some time here will be dedicated to explaining it.
 
-First you will need a program JSON object and a tape JSON object. You can read on below
-(the program.json and tape.json section) to learn what the schema of these files should be.
-In the event that you do not want to use a file, that is fine, but then you must have a Python
-dictionary object with the same schema as these files. The method for using this class is to
-read in the `program.json` and `tape.json` files using `json.load()` in the `json` module
-of python. The resulting loaded dictionaries are then passed to the construction for `TuringMachine`
-The constructor takes care of separating relevant information. Once you construct the turing machine
-with the appropriate dictionaries (created programatically or loaded from a JSON file) you can then
+First you will need a program JSON object and a tape string. You can read on below
+(the program.json and tape section) to learn what the schema of these objects should be.
+In the event that you do not want to use a file, that is fine, as the actual object used to 
+construct the TuringMachine object is a `Program` object. This class has a `from_file` method
+that can load the program from JSON, or it can be constructed manually using the `__init__` method
+(see source code). 
+
+Once you construct the instance of `Program` (either programatically or 
+loaded from a JSON file) you can then construct a `TuringMachine` object with the the `Program` instance and a 
+string or List[str] that represented the tape (see below). You can also then 
 *optionally* choose to call `TuringMachine#initialize()`, to set the values of `errorOnEOT` and
 `verbose` which are explained later in this document. After that you can use the `next()` method
 `next()` global function, iterators, or the `run()` method to run the Turing Machine simulation.
@@ -102,20 +104,30 @@ action specified by the `action` key. You can use an asterisk '*' to indicate th
 there is a chance--though it is not guaranteed--that during the simulation the machine will be in a state and read a
 tape value that it does not have rules for transitioning out of. This will raise a `NoSuchTransitionRule` error
 
-#### tape.json
-Since Turing machines have infinite tape but computers and people do not have infinite memory, the tape JSON file
-contains a part of the tape that the machine will use. It is a JSON file with a list of String values take from an arbitrary set. Your tape JSON file can be as long your computer can handle and you can conceive of. You
+#### tape
+Since Turing machines have infinite tape but computers and people do not have infinite memory, the tape is a finite
+string that contains part of what would be the actual tape used by the Turing machine. It can be passed in on the 
+command line as a string, but will be presented in python as a list of singe-char strings. The TuringMachine class
+can handle either a List[str] or a plain str type when passed in, though lists are recommended. 
+Your tape can be as long your computer can handle and you can conceive of. You
 will have the option, when running the machine, to being the simulation at any index you choose (indices are 0-based)
 so you may choose to start in the middle of the tape. Note that there are two possible behaviors that will be taken,
 in the event you "run out of tape". See below for more.
 
 An example of this schema would be something like
-```json
-[
-  "1", "0", "0", " ", " ", " ", " ", "0"
-]
-
 ```
+1110101100101
+```
+or 
+```
+AABBBBCC
+```
+
+The tape can contain arbitrary symbols except for `*` and `#`
+
+Since the tapes can get arbitrary long, you can also save the tape to a file and use the shell to your advantage. 
+For example, on zsh for instance, you can have a file called `tape.txt` and then you can pass it to the 
+program on the CLI as a string by using something like `python main.py -p program.json -t $(cat tape.txt)`
 
 #### Error on EOT
 Since Turing machines have infinite tape, but computers don't, there is the possibility of you running off the end
