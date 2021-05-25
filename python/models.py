@@ -76,7 +76,7 @@ class Transition:
         self.action: Action = action
 
     def matches(self, state: State, tape_value: str) -> bool:
-        check_state('matches', 'state', state)
+        check_state('matches()', 'state', state)
         return self.start_state == state and self.tape_value == tape_value
 
     def get_result(self) -> 'TransitionResult':
@@ -108,7 +108,7 @@ class TransitionMap:
         return (state, tape_value) in self.map
 
     def get_result(self, state: State, tape_value: str) -> TransitionResult:
-        check_state('understands()', 'state', state)
+        check_state('get_result()', 'state', state)
         transition = self._transition_for(state, tape_value)
         if transition.new_tape_value == '*':
             assert tape_value == transition.tape_value
