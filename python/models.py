@@ -1,5 +1,6 @@
 import dataclasses
 import enum
+import functools
 import json
 from typing import Tuple, TypedDict, List, Dict, Union, TextIO, Any
 
@@ -18,6 +19,21 @@ def describe(cls):
 
     setattr(cls, '__str__', __str__)
     setattr(cls, '__repr__', __str__)
+    return cls
+
+
+def hashable(cls):
+    def hashed(self):
+        return super(cls, self).__hash__() ^ (
+            functools.reduce(lambda a, i: (a << 4) ^ hash(i), self.__dict__.values(), 0))
+
+    def equals(self, other):
+        if type(other) is not type(self):
+            return False
+        return all([i[0] == i[1] for i in zip(self.__dict__.values(), other.__dict__.values())])
+
+    setattr(cls, '__eq__', equals)
+    setattr(cls, '__hash__', hashed)
     return cls
 
 
@@ -44,30 +60,23 @@ class TransitionJSONObject(TypedDict):
 
 
 @describe
+@hashable
 class State:
     registry = {}
+
+    _init_token = object()
 
     @classmethod
     def get(cls, name: str) -> 'State':
         if name not in cls.registry:
-            cls.registry[name] = cls(name)
+            cls.registry[name] = cls(name, State._init_token)
         return cls.registry[name]
 
-    def __init__(self, name: str) -> None:
+    def __init__(self, name: str, key: object = object()) -> None:
         """Do not call __init__ call State.get"""
-        assert not any([i == name for i in
-                        State.registry.keys()]), 'Non-identical states with the same name are not allowed! ' \
-                                                 'Call State.get(name) to create/retrieve State objects'
+        if key != State._init_token:
+            raise IllegalAccess('Do not call State(). Use State.get(name) to create/retrieve State objects')
         self.name: str = name
-
-    def __eq__(self, other):
-        if not type(other) is State:
-            return False
-        assert ((self is not other and self.name != other.name) or self is other)
-        return self is other
-
-    def __hash__(self) -> int:
-        return super(State, self).__hash__()
 
 
 @describe
@@ -154,6 +163,10 @@ class Program:
         self.transitions = transitions
         self.initial_state = initial_state
         self.initial_index = initial_index
+
+
+class IllegalAccess(ValueError):
+    pass
 
 
 class NextAfterHalt(StopIteration):
