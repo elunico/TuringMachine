@@ -12,7 +12,7 @@ def parse_args():
                     help='Print out the "tape-format" and "output-format" keys of the given program JSON file passed to --expalin if they exist and exit')
     ap.add_argument('-p', '--program', default='program.json',
                     help='path to json file containing the program object. Must contain the states object list and transition object list')
-    ap.add_argument('-t', '--tape', default='tape.json', help='path to json file containing the list of tape values')
+    ap.add_argument('-t', '--tape', help='The string to be used as the tape for running the program')
     ap.add_argument('-i', '--infinite', action='store_true',
                     help='If the -i flag is passed, no EOT errors will be raised and tape will act as though it were infinite (until memory exhausts)')
     ap.add_argument('-a', '--accepts', action='store_true',
@@ -26,8 +26,6 @@ def parse_args():
     if not options.explain:
         if not os.path.exists(options.program):
             ap.error('Could not find program.json. Use -p to pass the path to a json file with program object')
-        if not os.path.exists(options.tape):
-            ap.error('Could not find tape.json. Use -t to pass the path to a json file with tape values')
     return options
 
 
@@ -44,10 +42,8 @@ def main():
         print(program.get('output-format', '<not provided>'))
         return
 
-    with open(options.tape) as f:
-        tape = json.load(f)
-
     program = Program.from_file(options.program)
+    tape = [i for i in options.tape]
 
     if options.accepts:
         print(TuringMachine.accepts(program, tape, error_on_eot=not options.infinite, verbose=not options.quiet))

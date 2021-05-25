@@ -7,6 +7,8 @@ from models import TransitionResult, check_state
 class TuringMachine:
     @classmethod
     def accepts(cls, program: Program, tape: List[str], error_on_eot: bool = True, verbose: bool = True) -> bool:
+        if isinstance(tape, str):
+            tape = [i for i in tape]
         f = cls(program, tape)
         try:
             f.initialize(error_on_eot, verbose)
@@ -19,7 +21,7 @@ class TuringMachine:
         # data
         self.states: List[State] = program.states
         self.transition_map: TransitionMap = TransitionMap(program.transitions)
-        self.tape: List[str] = tape
+        self.tape: List[str] = [i for i in tape] if isinstance(tape, str) else tape
 
         # state variables
         self.state: State = State.get(program.initial_state)
