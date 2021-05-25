@@ -1,7 +1,7 @@
 import dataclasses
 import enum
-import functools
 import json
+from functools import reduce
 from typing import Tuple, TypedDict, List, Dict, Union, TextIO, Any
 
 
@@ -23,17 +23,19 @@ def describe(cls):
 
 
 def hashable(cls):
-    def hashed(self):
-        return super(cls, self).__hash__() ^ (
-            functools.reduce(lambda a, i: (a << 4) ^ hash(i), self.__dict__.values(), 0))
+    def hasher(a, i):
+        return ((a << 4) ^ hash(i)) | (a & 15)
 
-    def equals(self, other):
+    def __hash__(self):
+        return super(cls, self).__hash__() ^ (reduce(hasher, self.__dict__.values(), 0))
+
+    def __eq__(self, other):
         if type(other) is not type(self):
             return False
         return all([i[0] == i[1] for i in zip(self.__dict__.values(), other.__dict__.values())])
 
-    setattr(cls, '__eq__', equals)
-    setattr(cls, '__hash__', hashed)
+    setattr(cls, '__eq__', __eq__)
+    setattr(cls, '__hash__', __hash__)
     return cls
 
 
