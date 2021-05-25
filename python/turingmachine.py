@@ -147,12 +147,12 @@ class TuringMachine:
         print('WARNING: This TuringMachine#ensure_transitions() may not do what you think. Read the documentation')
         tape_values = list(tape_values)
         for state in self.states:
-            name = state.name
             for transition in self.transition_map.transitions:
-                if transition.start_state == name:
-                    tape_values.remove(transition.tape_value)
+                if transition.start_state == state:
+                    if transition.tape_value in tape_values:
+                        tape_values.remove(transition.tape_value)
             if len(tape_values) != 0:
-                raise NoSuchTransitionRule(state.name, tape_values)
+                raise NoSuchTransitionRule(state, tape_values)
 
     def dump_tape(self):
         print('Current State: {}'.format(self.state.name))

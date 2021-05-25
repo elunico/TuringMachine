@@ -55,7 +55,19 @@ class State:
 
     def __init__(self, name: str) -> None:
         """Do not call __init__ call State.get"""
+        assert not any([i == name for i in
+                        State.registry.keys()]), 'Non-identical states with the same name are not allowed! ' \
+                                                 'Call State.get(name) to create/retrieve State objects'
         self.name: str = name
+
+    def __eq__(self, other):
+        if not type(other) is State:
+            return False
+        assert ((self is not other and self.name != other.name) or self is other)
+        return self is other
+
+    def __hash__(self) -> int:
+        return super(State, self).__hash__()
 
 
 @describe
@@ -100,8 +112,8 @@ class TransitionMap:
         item = (state, tape_value)
         try:
             return self.map[item]
-        except KeyError:
-            raise NoSuchTransitionRule(item[0].name, item[1])
+        except KeyError as e:
+            raise NoSuchTransitionRule(item[0], item[1]) from None
 
     def understands(self, state: State, tape_value: str) -> bool:
         check_state('understands()', 'state', state)
@@ -149,12 +161,13 @@ class NextAfterHalt(StopIteration):
 
 
 class NoSuchTransitionRule(KeyError):
-    def __init__(self, state: str, tape_value: Union[List[str], str]) -> None:
+    def __init__(self, state: State, tape_value: Union[List[str], str]) -> None:
         self.state = state
         self.tape_value = tape_value
 
     def __str__(self) -> str:
-        return 'No known transition for machine in state {} with tape value of {}'.format(self.state, self.tape_value)
+        return 'No known transition for machine in state {} with tape value of {}'.format(repr(self.state),
+                                                                                          repr(self.tape_value))
 
     def __repr__(self) -> str:
         return 'NoSuchTransitionRule: {}'.format(str(self))
