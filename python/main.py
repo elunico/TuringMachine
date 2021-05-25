@@ -8,6 +8,7 @@ from turingmachine import TuringMachine
 
 def parse_args():
     ap = argparse.ArgumentParser()
+    ap.add_argument('--explain', required=False, help='Print out the "tape-format" and "output-format" keys of the given program JSON file passed to --expalin if they exist and exit')
     ap.add_argument('-p', '--program', default='program.json',
                     help='path to json file containing the program object. Must contain the states object list and transition object list')
     ap.add_argument('-t', '--tape', default='tape.json', help='path to json file containing the list of tape values')
@@ -19,15 +20,26 @@ def parse_args():
                                                                            'states are covered and raise an exception if not. Might not do what you expect. '
                                                                            'Read the documentation for the TuringMachine#ensure_transitions() method')
     options = ap.parse_args()
-    if not os.path.exists(options.program):
-        ap.error('Could not find program.json. Use -p to pass the path to a json file with program object')
-    if not os.path.exists(options.tape):
-        ap.error('Could not find tape.json. Use -t to pass the path to a json file with tape values')
+    if not options.explain:
+        if not os.path.exists(options.program):
+            ap.error('Could not find program.json. Use -p to pass the path to a json file with program object')
+        if not os.path.exists(options.tape):
+            ap.error('Could not find tape.json. Use -t to pass the path to a json file with tape values')
     return options
 
 
 def main():
     options = parse_args()
+
+    if options.explain:
+        with open(options.explain) as f:
+            program = json.load(f)
+        print("==== \033[1mExpected tape input format:\033[0m ==== ")
+        print(program.get('tape-format', '<not provided>'))
+        print()
+        print("==== \033[1mExpected tape output format:\033[0m ====")
+        print(program.get('output-format', '<not provided>'))
+        return
 
     with open(options.tape) as f:
         tape = json.load(f)
