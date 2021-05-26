@@ -1,7 +1,8 @@
 import enum
 import json
-from decorators import *
 from typing import Tuple, TypedDict, List, Dict, Union, TextIO, Any, Set
+
+from decorators import *
 
 
 def check_state(method_name: str, param_name: str, value: Any):
@@ -108,6 +109,7 @@ class ProgramJSONObject(TypedDict):
     initialIndex: int
     states: List[str]
     transitions: List[TransitionJSONObject]
+
 
 @describe
 @hashable

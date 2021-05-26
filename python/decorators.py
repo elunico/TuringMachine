@@ -1,21 +1,21 @@
 import dataclasses
 from functools import reduce
 
+
 # decorator function
 def describe(cls):
     def __str__(self):
         return '{}[{}]'.format(self.__class__.__name__,
-                               ', '.join(map(lambda k: '{}={}'.format(k[0], repr(k[1])), self.__dict__.items())))
+                               ', '.join(['{}={}'.format(k, v) for (k, v) in self.__dict__.items()]))
 
     setattr(cls, '__str__', __str__)
     setattr(cls, '__repr__', __str__)
     return cls
 
 
-# decorator function
 def hashable(cls):
     def hasher(a, i):
-        return ((a << 4) ^ hash(i)) | (a & 15)
+        return ((a << 8) | (a >> 56)) ^ hash(i)
 
     def __hash__(self):
         return super(cls, self).__hash__() ^ (reduce(hasher, self.__dict__.values(), 0))
