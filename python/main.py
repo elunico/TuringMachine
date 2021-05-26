@@ -49,10 +49,9 @@ def main():
         print(TuringMachine.accepts(program, tape, error_on_eot=not options.infinite, verbose=not options.quiet))
         return
 
-    machine = TuringMachine(program, tape)
+    machine = TuringMachine(program, tape, err_on_eot=not options.infinite, verbose=not options.quiet)
     if options.ensuretransitions:
         machine.ensure_transitions()
-    machine.initialize(err_on_eot=not options.infinite, verbose=not options.quiet)
     print("Machine start!")
     print("Tape output (without blanks)")
     machine.print_tape_trimmed()

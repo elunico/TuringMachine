@@ -1,7 +1,7 @@
 import enum
 import json
 from decorators import *
-from typing import Tuple, TypedDict, List, Dict, Union, TextIO, Any
+from typing import Tuple, TypedDict, List, Dict, Union, TextIO, Any, Set
 
 
 def check_state(method_name: str, param_name: str, value: Any):
@@ -109,6 +109,14 @@ class ProgramJSONObject(TypedDict):
     states: List[str]
     transitions: List[TransitionJSONObject]
 
+@describe
+@hashable
+class TapeValues:
+    def __init__(self, start_values: Set[str] = set(), written_values: Set[str] = set(), all: Set[str] = set()):
+        self.start_values: Set[str] = set(start_values)
+        self.written_values: Set[str] = set(written_values)
+        self.all: Set[str] = set(all)
+
 
 @describe
 class Program:
@@ -129,6 +137,18 @@ class Program:
         self.transitions = transitions
         self.initial_state = initial_state
         self.initial_index = initial_index
+
+    @property
+    def known_tape_values(self) -> TapeValues:
+        values = TapeValues()
+        for transition in self.transitions:
+            values.start_values.add(transition.tape_value)
+            values.written_values.add(transition.new_tape_value)
+        values.all = values.start_values.union(values.written_values)
+        values.start_values.remove('*')
+        values.written_values.remove('*')
+        values.all.remove('*')
+        return values
 
 
 class IllegalAccess(ValueError):

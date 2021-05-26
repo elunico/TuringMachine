@@ -1,6 +1,7 @@
 from typing import List, Tuple
 
-from models import State, TransitionMap, NoSuchTransitionRule, Program, NextAfterHalt, EndOfTapeError, Action
+from models import NoSuchTransitionRule, Program, NextAfterHalt, EndOfTapeError, Action
+from models import State, TransitionMap
 from models import TransitionResult, check_state
 
 
@@ -9,16 +10,16 @@ class TuringMachine:
     def accepts(cls, program: Program, tape: List[str], error_on_eot: bool = True, verbose: bool = True) -> bool:
         if isinstance(tape, str):
             tape = [i for i in tape]
-        f = cls(program, tape)
+        f = cls(program, tape, error_on_eot, verbose)
         try:
-            f.initialize(error_on_eot, verbose)
             f.run()
             return True
         except NoSuchTransitionRule as e:
             return False
 
-    def __init__(self, program: Program, tape: List[str]) -> None:
+    def __init__(self, program: Program, tape: List[str], err_on_eot: bool = True, verbose: bool = True) -> None:
         # data
+        self.program = program
         self.states: List[State] = program.states
         self.transition_map: TransitionMap = TransitionMap(program.transitions)
         self.tape: List[str] = [i for i in tape] if isinstance(tape, str) else tape
@@ -26,21 +27,9 @@ class TuringMachine:
         # state variables
         self.state: State = State.get(program.initial_state)
         self.tapeIndex: int = program.initial_index
-        self.errorOnEOT: bool = True
+        self.errorOnEOT: bool = err_on_eot
         self.halted: bool = False
-        self.verbose: bool = True
-        self.initialize()
-
-    def initialize(self, err_on_eot: bool = True, verbose: bool = True):
-        """
-        err_on_eot: determines whether the Turing machine will error
-        if it runs out of tape or if it will append additional values to the tape as needed
-        Tape is assumed to be blank if out of range.
-        Default value is to error on tape end
-        """
-        self.halted = False
-        self.errorOnEOT = err_on_eot
-        self.verbose = verbose
+        self.verbose: bool = verbose
 
     def run(self):
         """Run continuously until halt or interrupt"""

@@ -20,9 +20,8 @@ that can load the program from JSON, or it can be constructed manually using the
 
 Once you construct the instance of `Program` (either programatically or 
 loaded from a JSON file) you can then construct a `TuringMachine` object with the the `Program` instance and a 
-string or List[str] that represented the tape (see below). You can also then 
-*optionally* choose to call `TuringMachine#initialize()`, to set the values of `errorOnEOT` and
-`verbose` which are explained later in this document. After that you can use the `next()` method
+string or List[str] that represented the tape (see below).
+After that you can use the `next()` method
 `next()` global function, iterators, or the `run()` method to run the Turing Machine simulation.
 An explanation of other methods can be found below and in their documentation
 
@@ -144,5 +143,5 @@ However, using this method and having it succeed means there is not way to raise
 during the normal operation of a simulation. Having this method fail does not mean any particular simulation
 WILL fail but it might, but having the method succeed means no simulation can fail.
 
-The `verbose` option which can set in the `TuringMachine#initialize()` method will print the state and transition
+The `verbose` option will print the state and transition
 rules being applied at each step. The default is to have this be true. If you set it to false the steps are not printed
