@@ -147,8 +147,8 @@ class Program:
             values.start_values.add(transition.tape_value)
             values.written_values.add(transition.new_tape_value)
         values.all = values.start_values.union(values.written_values)
-        values.start_values.remove('*')
-        values.written_values.remove('*')
+        values.start_values.discard('*')
+        values.written_values.discard('*')
         values.all.remove('*')
         return values
 
@@ -182,8 +182,12 @@ class EndOfTapeError(EOFError):
         self.index: int = index
 
     def __str__(self) -> str:
-        return '{}: Last valid position: state={} (tape={}) '.format(self.message, repr(self.state.name),
-                                                                     repr(self.tape[self.index]))
+        if self.index < 0 or self.index >= len(self.tape):
+            return '{}: Invalid position: state={} (position={}) '.format(self.message, repr(self.state.name),
+                                                                          self.index)
+        else:
+            return '{}: Last valid position: state={} (tape={}) '.format(self.message, repr(self.state.name),
+                                                                         repr(self.tape[self.index]))
 
     def __repr__(self) -> str:
         return 'EndOfTapeError: {}'.format(str(self))

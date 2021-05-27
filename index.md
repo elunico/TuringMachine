@@ -9,6 +9,13 @@ It consists of several parts.
 You can continue reading the `README.md` from the repo directly below.
 
 ## README.md
+# Turning Machine Simulation
+
+This program (approximately) simulates a Turing machine.
+
+It consists of several parts.
+
+You can find the webpage for creating program JSON files [at this link](https://eluni.co/TuringMachine/web/transition-maker.html)
 
 ## importing TuringMachine
 First there is a TuringMachine class which can be imported and used in other programs.
