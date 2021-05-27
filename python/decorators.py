@@ -3,10 +3,11 @@ from functools import reduce
 
 
 # decorator function
-def describe(cls):
+def stringable(cls):
     def __str__(self):
-        return '{}[{}]'.format(self.__class__.__name__,
-                               ', '.join(['{}={}'.format(k, v) for (k, v) in self.__dict__.items()]))
+        items = ['{}={}'.format(k, v) for (k, v) in self.__dict__.items()]
+        items_string = ', '.join(items)
+        return '{}[{}]'.format(self.__class__.__name__, items_string)
 
     setattr(cls, '__str__', __str__)
     setattr(cls, '__repr__', __str__)
@@ -18,12 +19,13 @@ def hashable(cls):
         return ((a << 8) | (a >> 56)) ^ hash(i)
 
     def __hash__(self):
-        return super(cls, self).__hash__() ^ (reduce(hasher, self.__dict__.values(), 0))
+        return super(cls, self).__hash__() ^ reduce(hasher, self.__dict__.values(), 0)
 
     def __eq__(self, other):
         if type(other) is not type(self):
             return False
-        return all([i[0] == i[1] for i in zip(self.__dict__.values(), other.__dict__.values())])
+        pairs = zip(self.__dict__.values(), other.__dict__.values())
+        return all([i[0] == i[1] for i in pairs])
 
     setattr(cls, '__eq__', __eq__)
     setattr(cls, '__hash__', __hash__)
@@ -33,5 +35,5 @@ def hashable(cls):
 # decorator function
 def dataclass(cls):
     cls = dataclasses.dataclass(cls, init=True, repr=True, eq=True, frozen=True)
-    cls = describe(cls)
+    cls = stringable(cls)
     return cls

@@ -26,7 +26,7 @@ class TransitionJSONObject(TypedDict):
     action: Action
 
 
-@describe
+@stringable
 @hashable
 class State:
     registry = {}
@@ -46,7 +46,7 @@ class State:
         self.name: str = name
 
 
-@describe
+@stringable
 class Transition:
     @classmethod
     def fromjson(cls, json_object: TransitionJSONObject):
@@ -78,7 +78,7 @@ class TransitionResult:
     action: Action
 
 
-@describe
+@stringable
 class TransitionMap:
     def __init__(self, transitions: List[Transition]):
         self.transitions: List[Transition] = transitions
@@ -111,7 +111,7 @@ class ProgramJSONObject(TypedDict):
     transitions: List[TransitionJSONObject]
 
 
-@describe
+@stringable
 @hashable
 class TapeValues:
     def __init__(self, start_values: Set[str] = set(), written_values: Set[str] = set(), all: Set[str] = set()):
@@ -120,7 +120,7 @@ class TapeValues:
         self.all: Set[str] = set(all)
 
 
-@describe
+@stringable
 class Program:
     @classmethod
     def from_file(cls, f: Union[str, TextIO]) -> 'Program':
