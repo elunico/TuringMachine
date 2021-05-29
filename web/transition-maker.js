@@ -1,6 +1,6 @@
-let states = [];
+let states = new Set();
+let tape = new Set();
 let transitions = [];
-let tape = [];
 
 let stateContainer = document.getElementById('states-container');
 let tapeContainer = document.getElementById('tape-container');
@@ -13,8 +13,6 @@ makeStateButton.onclick = function () {
   // form inputs
   let startState = document.getElementById('startState').value;
   let endState = document.getElementById('endState').value;
-  // let startTape = document.getElementById('startTape').selectedOptions[0].getAttribute('data-tape');
-  // let endTape = document.getElementById('endTape').selectedOptions[0].getAttribute('data-tape');
   let startTape = document.getElementById('startTape').value.trim().replace(/#/g, ' ');
   let endTape = document.getElementById('endTape').value.trim().replace(/#/g, ' ');
   let action = document.getElementById('action').selectedOptions[0].id;
@@ -25,6 +23,12 @@ makeStateButton.onclick = function () {
     return;
   }
 
+  // check for more needed values
+  if (!startTape || !endTape) {
+    alert('tape values must not be blank');
+    return;
+  }
+
   // create transition data object
   let transitionData = {
     startState: startState,
@@ -32,7 +36,7 @@ makeStateButton.onclick = function () {
     tapeValue: startTape,
     newTapeValue: endTape,
     action: action
-  }
+  };
 
   // save the transition object data
   transitions.push(transitionData);
@@ -65,7 +69,7 @@ makeStateButton.onclick = function () {
     }
     // remove the states from the list and the option list for the initial State selection
     for (let state of needRemove) {
-      states.splice(states.indexOf(state), 1);
+      states.delete(state);
       initstate.removeChild(initstate.querySelector(`option[data-state-name=${state}]`));
     }
 
@@ -84,44 +88,45 @@ makeStateButton.onclick = function () {
     }
     // remove the states from the list and the option list for the initial State selection
     for (let t of needRemove) {
-      tape.splice(tape.indexOf(t), 1);
+      tape.delete(t);
     }
     // update the list of states in the stateContainer on the page
-    stateContainer.textContent = states.join(', ');
-    tapeContainer.textContent = tape.map(v => v == ' ' ? '#' : v).join(', ');
-  }
+    stateContainer.textContent = [...states.values()].join(', ');
+    tapeContainer.textContent = [...tape.values()].map(v => v == ' ' ? '#' : v).join(', ');
+  };
 
   // append the information nodes so the user can see the program
   transitionNode.appendChild(deleteButton);
   transitionContainer.appendChild(transitionNode);
 
-  // If the states used have never been used before, we better put them
-  // in the list of states
-  if (states.indexOf(startState) < 0) {
-    states.push(startState);
-    let newInitOption = document.createElement('option');
-    newInitOption.setAttribute('data-state-name', startState);
-    newInitOption.textContent = startState;
-    initstate.appendChild(newInitOption);
-  }
-  if (states.indexOf(endState) < 0) {
-    states.push(endState);
-    let newInitOption = document.createElement('option');
-    newInitOption.setAttribute('data-state-name', endState);
-    newInitOption.textContent = endState;
-    initstate.appendChild(newInitOption);
+  // first check to see if the states exist already
+  function checkKnownState(state) {
+    if (!states.has(state)) {
+      let newInitOption = document.createElement('option');
+      newInitOption.setAttribute('data-state-name', state);
+      newInitOption.textContent = state;
+      initstate.appendChild(newInitOption);
+    }
   }
 
+  checkKnownState(startState);
+  checkKnownState(endState);
+
+  // now that we added options if needed we can just throw the states
+  // into the set since its a set
+  states.add(startState);
+  states.add(endState);
+
   // add tape values to list so the user can see them if not already there
-  if (tape.indexOf(startTape) < 0) {
-    tape.push(startTape);
+  if (startTape != '*') {
+    tape.add(startTape);
   }
-  if (tape.indexOf(endTape) < 0) {
-    tape.push(endTape);
+  if (endTape != '*') {
+    tape.add(endTape);
   }
   // update the stateContainer & tapeContainer text
-  stateContainer.textContent = states.join(', ');
-  tapeContainer.textContent = tape.map(v => v == ' ' ? '#' : v).join(', ');
+  stateContainer.textContent = [...states.values()].join(', ');
+  tapeContainer.textContent = [...tape.values()].map(v => v == ' ' ? '#' : v).join(', ');
 
 };
 
