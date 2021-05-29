@@ -14,13 +14,7 @@ def stringable(cls):
     return cls
 
 
-def hashable(cls):
-    def hasher(a, i):
-        return ((a << 8) | (a >> 56)) ^ hash(i)
-
-    def __hash__(self):
-        return super(cls, self).__hash__() ^ reduce(hasher, self.__dict__.values(), 0)
-
+def equatable(cls):
     def __eq__(self, other):
         if type(other) is not type(self):
             return False
@@ -28,6 +22,24 @@ def hashable(cls):
         return all([i[0] == i[1] for i in pairs])
 
     setattr(cls, '__eq__', __eq__)
+    setattr(cls, '__hash__', None)
+    return cls
+
+
+def hashable(cls):
+    cls = equatable(cls)
+
+    def hasher(a, i):
+        return ((a << 8) | (a >> 56)) ^ hash(i)
+
+    def __hash__(self):
+        for (name, value) in self.__dict__.items():
+            if type(value).__hash__ is None:
+                fmt_str = "value of type {} can't be hashed because the field {}={} (type={}) is not hashable"
+                str_format = fmt_str.format(repr(cls.__name__), repr(name), repr(value), repr(type(value).__name__))
+                raise TypeError(str_format)
+        return super(cls, self).__hash__() ^ reduce(hasher, self.__dict__.values(), 0)
+
     setattr(cls, '__hash__', __hash__)
     return cls
 
