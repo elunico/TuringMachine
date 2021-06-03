@@ -62,6 +62,7 @@ def accepts(*types: Union[type, Tuple[type]]):
                     t = tuple([_get_class_that_defined_method(f) if i is Self else i for i in t])
                     assert all(i is not None for i in t), "Cannot accept Self on non-bound method {}".format(f.__name__)
                 else:
+                    t = _get_class_that_defined_method(f) if t is Self else t
                     assert t is not None, "Cannot accept Self on non-bound method {}".format(f.__name__)
                 assert isinstance(a, t), "{}: got argument {} (type of {}) but expected argument of type(s) {}".format(
                     f.__name__, a, type(a), t)
