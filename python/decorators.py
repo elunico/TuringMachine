@@ -26,8 +26,45 @@ def _get_class_that_defined_method(meth):
     return getattr(meth, '__objclass__', None)  # handle special descriptor objects
 
 
-# used for accepts when type is type of class being defined
 class Self(type):
+    """
+    This class stands in for the type of the class being defined. Since decorators require evaluation
+    before the defintion end of a class, you cannot use a class's type in the @accepts for one of its
+    methods. Instead, you should use the type Self. This will be replaced by the class type at runtime.
+    This does not make sense for unbound methods (free functions) or static methods and will raise an
+    error if passed to such a function or method.
+
+    Example:
+
+        class Vector2D:
+            def __init__(self, x, y, z):
+                self.x = x
+                self.y = y
+                self.z = z
+
+            @accepts(Self)
+            def plus(self, other):
+                self.x += other.x
+                self.y += other.y
+                self.z += other.z
+
+         class State:
+            registry = {}
+
+            @classmethod
+            @accepts((Self, str))
+            def get(cls, s):
+                if isinstance(s, State):
+                    return s
+                else:
+                    if s not in registry:
+                        registry[s] = State(s)
+                    return registry[s]
+
+            @accepts(str)
+            def __init__(self, name):
+                self.name = name
+    """
     pass
 
 
@@ -41,6 +78,18 @@ def _isiterable(t):
 
 # from PEP 318 with heavy modifications
 def accepts(*types: Union[type, Tuple[type]]):
+    """
+    Provides a declaration and run-time check of the types accepted by a function or method
+
+    Pass 1 type per argument or, if multiple types are acceptable, 1 tuple of types per argument (as used in isinstance)
+
+    DO NOT PASS A TYPE FOR self OR cls parameters. The parameters 'self' and 'cls' are NEVER CHECKED by if they appear
+    as the first parameter in a method.
+
+    :param types: a splat of types or tuples of types to match 1 to 1 against the args to the function
+    :return: a decorator which wraps a function and does a run time type check on all arguments against the types
+             given EXCEPT for 'self' and 'cls' first args
+    """
     def check_accepts(f):
         is_bound = len(f.__code__.co_varnames) > 0 and (
                 f.__code__.co_varnames[0] == 'self' or f.__code__.co_varnames[0] == 'cls')
