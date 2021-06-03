@@ -1,14 +1,8 @@
 import enum
 import json
-from typing import Tuple, TypedDict, List, Dict, Union, TextIO, Any, Set
+from typing import TypedDict, List, Dict, TextIO, Set
 
 from decorators import *
-
-
-def check_state(method_name: str, param_name: str, value: Any):
-    if not isinstance(value, State):
-        raise TypeError(
-            '{} method requires parameter {} to be type State not {}'.format(method_name, param_name, type(value)))
 
 
 class Action(enum.Enum):
@@ -26,6 +20,13 @@ class TransitionJSONObject(TypedDict):
     action: Action
 
 
+class ProgramJSONObject(TypedDict):
+    initialState: str
+    initialIndex: int
+    states: List[str]
+    transitions: List[TransitionJSONObject]
+
+
 @stringable
 @hashable
 class State:
@@ -34,7 +35,10 @@ class State:
     _init_token = object()
 
     @classmethod
-    def get(cls, name: str) -> 'State':
+    @accepts((Self, str))
+    def get(cls, name: Union['State', str]) -> 'State':
+        if isinstance(name, State):
+            return name
         if name not in cls.registry:
             cls.registry[name] = cls(name, State._init_token)
         return cls.registry[name]
@@ -51,20 +55,19 @@ class Transition:
     @classmethod
     def fromjson(cls, json_object: TransitionJSONObject):
         return cls(State.get(json_object['startState']), State.get(json_object['endState']), json_object['tapeValue'],
-                   json_object['newTapeValue'], json_object['action'])
+                   json_object['newTapeValue'], Action.__members__[json_object['action']])
 
+    @accepts(State, State, str, str, Action)
     def __init__(self, start_state: State, end_state: State, tapeValue: str, newTapeValue: str,
                  action: Action):
-        check_state('Transition()', 'start_state', start_state)
-        check_state('Transition()', 'end_state', end_state)
         self.start_state: State = start_state
         self.end_state: State = end_state
         self.tape_value: str = tapeValue
         self.new_tape_value: str = newTapeValue
         self.action: Action = action
 
+    @accepts(State, str)
     def matches(self, state: State, tape_value: str) -> bool:
-        check_state('matches()', 'state', state)
         return self.start_state == state and self.tape_value == tape_value
 
     def get_result(self) -> 'TransitionResult':
@@ -84,6 +87,7 @@ class TransitionMap:
         self.transitions: List[Transition] = transitions
         self.map: Dict[Tuple[State, str], Transition] = {(i.start_state, i.tape_value): i for i in self.transitions}
 
+    @accepts(State, str)
     def _transition_for(self, state: State, tape_value: str) -> Transition:
         item = (state, tape_value)
         try:
@@ -91,24 +95,17 @@ class TransitionMap:
         except KeyError as e:
             raise NoSuchTransitionRule(item[0], item[1]) from None
 
+    @accepts(State, str)
     def understands(self, state: State, tape_value: str) -> bool:
-        check_state('understands()', 'state', state)
         return (state, tape_value) in self.map
 
+    @accepts(State, str)
     def get_result(self, state: State, tape_value: str) -> TransitionResult:
-        check_state('get_result()', 'state', state)
         transition = self._transition_for(state, tape_value)
         if transition.new_tape_value == '*':
             assert tape_value == transition.tape_value
             transition.new_tape_value = transition.tape_value
         return TransitionResult(transition.end_state, transition.new_tape_value, transition.action)
-
-
-class ProgramJSONObject(TypedDict):
-    initialState: str
-    initialIndex: int
-    states: List[str]
-    transitions: List[TransitionJSONObject]
 
 
 @stringable
@@ -124,11 +121,7 @@ class TapeValues:
 class Program:
     @classmethod
     def from_file(cls, f: Union[str, TextIO]) -> 'Program':
-        if isinstance(f, str):
-            file = open(f)
-        else:
-            file = f
-
+        file: TextIO = open(f) if isinstance(f, str) else f
         with file as reader:
             p: ProgramJSONObject = json.load(reader)
         return Program([State.get(i) for i in p['states']], [Transition.fromjson(i) for i in p['transitions']],

@@ -1,8 +1,8 @@
 from typing import List, Tuple
 
-from models import NoSuchTransitionRule, Program, NextAfterHalt, EndOfTapeError, Action
+import decorators
+from models import NoSuchTransitionRule, Program, NextAfterHalt, EndOfTapeError, Action, TransitionResult
 from models import State, TransitionMap
-from models import TransitionResult, check_state
 
 
 class TuringMachine:
@@ -75,18 +75,17 @@ class TuringMachine:
                                                                                      result.state,
                                                                                      repr(old_tape_value),
                                                                                      repr(result.tape_value),
-                                                                                     result.action.lower())
+                                                                                     result.action)
             print(state_string + ' ' + next_string)
 
         return this_step
 
     def _perform_action(self, action: Action):
-        action = action.lower()
-        if action == 'left':
+        if action == Action.left:
             self.tapeIndex -= 1
-        elif action == 'right':
+        elif action == Action.right:
             self.tapeIndex += 1
-        elif action == 'halt':
+        elif action == Action.HALT:
             self.halted = True
 
     def _check_end_of_tape(self) -> str:
@@ -113,11 +112,11 @@ class TuringMachine:
             old_tape_value: str = self.tape[self.tapeIndex]
         return old_tape_value
 
+    @decorators.accepts(State, str)
     def transition_for_step(self, state: State, tape_value: str) -> TransitionResult:
         """
         :raises: EndOfTapeError if the machine is set to errorOnEot and tape_value == '#'
         """
-        check_state('transition_for_step()', 'state', state)
         if tape_value == '#' and not self.errorOnEOT:
             tape_value = ' '
         elif tape_value == '#' and self.errorOnEOT:
