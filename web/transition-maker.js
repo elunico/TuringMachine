@@ -110,11 +110,9 @@ makeStateButton.onclick = function () {
   }
 
   checkKnownState(startState);
-  checkKnownState(endState);
-
-  // now that we added options if needed we can just throw the states
-  // into the set since its a set
   states.add(startState);
+
+  checkKnownState(endState);
   states.add(endState);
 
   // add tape values to list so the user can see them if not already there
